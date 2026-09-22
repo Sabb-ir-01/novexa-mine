@@ -49,12 +49,6 @@
   }
   header h1{font-size:17px;margin:0;display:flex;align-items:center;gap:6px;}
   header .sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
-  .balance-strip{
-    font-size:11px;color:var(--text-muted);
-    padding:0 18px 10px;
-    display:flex;gap:14px;flex-wrap:wrap;
-  }
-  .balance-strip b{color:var(--text-main);}
   main{padding:0 16px 16px;flex:1;}
   .card{
     background:var(--card-bg);
@@ -84,17 +78,10 @@
   }
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn.secondary{background:#fff;color:var(--accent);border:1.5px solid var(--accent);}
-  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
-  .stat-box{
-    background:#f3fbfa;border-radius:var(--radius-sm);
-    padding:10px;text-align:center;
-  }
-  .stat-box .v{font-size:16px;font-weight:700;}
-  .stat-box .k{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
   .section-title{font-size:16px;font-weight:700;margin:0 0 4px;}
   .section-sub{font-size:12.5px;color:var(--text-muted);margin:0 0 14px;}
   .task-item{
-    display:flex;align-items:center;justify-content:space-between;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:12px 14px;background:var(--card-bg);
     border:1px solid var(--border);border-radius:var(--radius-md);
     margin-bottom:10px;
@@ -103,8 +90,10 @@
   .task-item .t-reward{font-size:12px;color:var(--accent);font-weight:600;}
   .task-item button{
     border:none;background:#e6f8f4;color:var(--accent);
-    padding:8px 16px;border-radius:999px;font-weight:600;font-size:13px;
+    padding:8px 14px;border-radius:999px;font-weight:600;font-size:12.5px;
+    white-space:nowrap;
   }
+  .task-item button:disabled{opacity:.55;}
   .streak-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0;}
   .streak-day{
     aspect-ratio:1;border-radius:10px;background:#f0f8f7;
@@ -143,9 +132,7 @@
     display:flex;justify-content:space-between;align-items:center;
     padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;
   }
-  .tx-item .status{
-    font-size:10.5px;padding:3px 8px;border-radius:999px;font-weight:700;
-  }
+  .status{font-size:10.5px;padding:3px 8px;border-radius:999px;font-weight:700;}
   .status.pending{background:#fff3d6;color:#8a6100;}
   .status.paid{background:#dcf7ee;color:#0f7a5f;}
   .status.rejected{background:#fde2e2;color:#a02424;}
@@ -162,7 +149,6 @@
     font-weight:600;cursor:pointer;padding:4px 8px;
   }
   nav button.active{color:var(--accent);}
-  nav button svg{width:20px;height:20px;}
   .view{display:none;}
   .view.active{display:block;}
   .toast{
@@ -205,8 +191,9 @@
 
     <!-- EARN -->
     <section class="view" id="view-earn">
-      <div class="section-title">Earn Nautilus… erm, Novexa</div>
-      <div class="section-sub">Watch a short ad to earn coins. Limited per day so the app stays sustainable.</div>
+      <div class="section-title">Earn Novexa Coins</div>
+      <div class="section-sub">Watch ads or complete tasks. Daily limits keep the app sustainable for everyone.</div>
+
       <div class="card">
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:10px;">
           <span>Today: <b id="adsWatchedLabel" style="color:var(--text-main)">0</b> / <span id="adsMaxLabel">12</span> ads</span>
@@ -214,7 +201,26 @@
         </div>
         <button class="btn" id="watchAdBtn">▶ Watch Ad (+<span id="adRewardLabel">20</span> NVX)</button>
       </div>
-      <div class="notice">Ads are provided by Adsgram. Reward is credited only after the ad finishes playing.</div>
+
+      <div class="card">
+        <div class="section-title" style="font-size:14px;">Ad Missions</div>
+        <div class="section-sub">Sponsored offers — open the link, then claim once it loads.</div>
+        <div class="task-item">
+          <div>
+            <div class="t-name">Monetag Offer</div>
+            <div class="t-reward" id="monetagCountLabel">+15 NVX · 0/10 today</div>
+          </div>
+          <button id="monetagBtn">Go</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="font-size:14px;">Telegram Tasks</div>
+        <div class="section-sub">React to the latest post in our channel. Repeatable every 2 hours.</div>
+        <div id="telegramTaskList"></div>
+      </div>
+
+      <div class="notice">Ad rewards are credited only after the ad or task actually completes — repeated claiming without engaging may get your account flagged.</div>
     </section>
 
     <!-- INVITE -->
@@ -262,18 +268,10 @@
   </main>
 
   <nav>
-    <button class="nav-btn active" data-view="home">
-      <span>🏠</span>Home
-    </button>
-    <button class="nav-btn" data-view="earn">
-      <span>✨</span>Earn
-    </button>
-    <button class="nav-btn" data-view="invite">
-      <span>🔗</span>Invite
-    </button>
-    <button class="nav-btn" data-view="wallet">
-      <span>💼</span>Wallet
-    </button>
+    <button class="nav-btn active" data-view="home"><span>🏠</span>Home</button>
+    <button class="nav-btn" data-view="earn"><span>✨</span>Earn</button>
+    <button class="nav-btn" data-view="invite"><span>🔗</span>Invite</button>
+    <button class="nav-btn" data-view="wallet"><span>💼</span>Wallet</button>
   </nav>
 
   <div class="toast" id="toast"></div>
@@ -286,38 +284,52 @@
    users will actually be able to earn and withdraw.
    ========================================================= */
 const CONFIG = {
-  // 1000 coins = this many USDT. Base this on your real Adsgram eCPM.
   COINS_TO_USDT_PER_1000: 0.05,
 
   COINS_PER_AD: 20,
   MAX_ADS_PER_DAY: 12,
+  ADSGRAM_BLOCK_ID: "49257",
 
-  MINE_COOLDOWN_HOURS: 4,
-  MINE_REWARD: 80,
+  MONETAG_LINK: "https://omg10.com/4/11858728",
+  MONETAG_COINS_PER_AD: 15,
+  MAX_MONETAG_PER_DAY: 10,          // no built-in "ad watched" confirmation exists for a Direct Link,
+  MONETAG_VERIFY_SECONDS: 15,       // so this cap + a short wait before "Claim" unlocks is the fraud guard
 
-  DAILY_BONUS_BASE: 10,        // day 1 reward
-  DAILY_BONUS_STEP: 5,         // +5 coins per streak day, capped below
+  MINE_COOLDOWN_HOURS: 2,
+  MINE_REWARD: 50,
+
+  DAILY_BONUS_BASE: 10,
+  DAILY_BONUS_STEP: 5,
   DAILY_BONUS_MAX_DAY: 7,
 
-  REFERRAL_BONUS: 50,          // one-time coins credited to the INVITER
+  REFERRAL_BONUS: 50,
 
-  // Fixed, achievable minimum — this number must never silently increase.
   MIN_WITHDRAW_COINS: 2000,
 
-  ADSGRAM_BLOCK_ID: "REPLACE_WITH_YOUR_ADSGRAM_BLOCK_ID",
+  // Telegram engagement tasks. reward is honor-system (no Bot API reaction
+  // check without a server backend) — cooldownHours is the only real guard.
+  TELEGRAM_TASKS: [
+    {
+      id: "react_zero_invest",
+      label: "React to latest post",
+      channelUsername: "Zero_Invest",
+      link: "https://t.me/Zero_Invest",
+      reward: 20,
+      cooldownHours: 2
+    }
+  ],
 };
 
 /* =========================================================
-   FIREBASE — replace with your own project config
-   (Firebase Console → Project settings → Your apps → SDK config)
+   FIREBASE
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME.firebaseapp.com",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyBEfTzbuf_OIQC1NcQqmQg_0QBIpbvfgDU",
+  authDomain: "novexa-mine.firebaseapp.com",
+  projectId: "novexa-mine",
+  storageBucket: "novexa-mine.firebasestorage.app",
+  messagingSenderId: "549658268581",
+  appId: "1:549658268581:web:72e70f3ab830e65e448e4c"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -331,10 +343,8 @@ if (tg) { tg.ready(); tg.expand(); }
 const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
 const userId = tgUser ? String(tgUser.id) : "guest_" + Math.random().toString(36).slice(2,10);
 const userName = tgUser ? (tgUser.username ? "@" + tgUser.username : tgUser.first_name) : "Guest";
-
 document.getElementById("userLabel").textContent = userName;
 
-// referral param, e.g. https://t.me/NovexaMineBot?startapp=ref_123456
 let referrerId = null;
 if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
   const sp = tg.initDataUnsafe.start_param;
@@ -344,9 +354,8 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
 /* =========================================================
    STATE
    ========================================================= */
-let userDoc = null; // live mirror of Firestore user doc
+let userDoc = null;
 const userRef = db.collection("users").doc(userId);
-
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 async function ensureUser(){
@@ -359,16 +368,17 @@ async function ensureUser(){
       totalMined: 0,
       adsWatchedToday: 0,
       lastAdDate: "",
+      monetagWatchedToday: 0,
+      lastMonetagDate: "",
       dailyStreak: 0,
       lastClaimDate: "",
-      mineReadyAt: Date.now(), // ready immediately on first visit
+      mineReadyAt: Date.now(),
       referredBy: referrerId,
       referralCount: 0,
+      taskClaims: {},
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     await userRef.set(initial);
-
-    // credit the referrer, once, for a real new user
     if (referrerId && referrerId !== userId){
       const refRef = db.collection("users").doc(referrerId);
       const refSnap = await refRef.get();
@@ -388,20 +398,16 @@ function toast(msg){
   t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"), 2200);
 }
-
-function coinsToUsdt(coins){
-  return (coins / 1000) * CONFIG.COINS_TO_USDT_PER_1000;
-}
+function coinsToUsdt(coins){ return (coins/1000)*CONFIG.COINS_TO_USDT_PER_1000; }
 
 /* =========================================================
    RENDER
    ========================================================= */
 function render(){
   if (!userDoc) return;
-
   document.getElementById("balancePill").textContent = `${userDoc.balance.toFixed(0)} NVX`;
 
-  // --- HOME / mining ---
+  // mining
   const now = Date.now();
   const ready = now >= (userDoc.mineReadyAt || 0);
   const collectBtn = document.getElementById("collectBtn");
@@ -419,7 +425,7 @@ function render(){
     collectBtn.textContent = `Mining… ${h}h ${m}m left`;
   }
 
-  // --- daily streak ---
+  // daily streak
   const streakRow = document.getElementById("streakRow");
   streakRow.innerHTML = "";
   const claimedToday = userDoc.lastClaimDate === todayStr();
@@ -434,7 +440,7 @@ function render(){
   document.getElementById("claimBonusBtn").disabled = claimedToday;
   document.getElementById("claimBonusBtn").textContent = claimedToday ? "Already claimed today" : "Claim Daily Bonus";
 
-  // --- earn tab ---
+  // adsgram
   const adsToday = userDoc.lastAdDate === todayStr() ? userDoc.adsWatchedToday : 0;
   document.getElementById("adsWatchedLabel").textContent = adsToday;
   document.getElementById("adsMaxLabel").textContent = CONFIG.MAX_ADS_PER_DAY;
@@ -446,11 +452,41 @@ function render(){
     ? "Come back tomorrow for more ads"
     : `▶ Watch Ad (+${CONFIG.COINS_PER_AD} NVX)`;
 
-  // --- invite tab ---
+  // monetag
+  const monetagToday = userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0;
+  document.getElementById("monetagCountLabel").textContent =
+    `+${CONFIG.MONETAG_COINS_PER_AD} NVX · ${monetagToday}/${CONFIG.MAX_MONETAG_PER_DAY} today`;
+  const monetagBtn = document.getElementById("monetagBtn");
+  if (!monetagBtn.dataset.armed){
+    monetagBtn.disabled = monetagToday >= CONFIG.MAX_MONETAG_PER_DAY;
+    monetagBtn.textContent = "Go";
+  }
+
+  // telegram tasks
+  const list = document.getElementById("telegramTaskList");
+  list.innerHTML = "";
+  CONFIG.TELEGRAM_TASKS.forEach(task=>{
+    const lastClaim = (userDoc.taskClaims && userDoc.taskClaims[task.id]) || 0;
+    const readyAt = lastClaim + task.cooldownHours*3600000;
+    const row = document.createElement("div");
+    row.className = "task-item";
+    const canClaim = now >= readyAt;
+    let btnLabel = "Go";
+    if (!canClaim){
+      const msLeft = readyAt-now;
+      const h = Math.floor(msLeft/3600000), m = Math.floor((msLeft%3600000)/60000);
+      btnLabel = `${h}h ${m}m`;
+    }
+    row.innerHTML = `<div><div class="t-name">${task.label}</div><div class="t-reward">+${task.reward} NVX · every ${task.cooldownHours}h</div></div>
+      <button data-task="${task.id}" ${canClaim?"":"disabled"}>${btnLabel}</button>`;
+    list.appendChild(row);
+  });
+
+  // invite
   document.getElementById("referralCount").textContent = userDoc.referralCount || 0;
   document.getElementById("referralBonusLabel").textContent = CONFIG.REFERRAL_BONUS;
 
-  // --- wallet tab ---
+  // wallet
   document.getElementById("walletBalance").textContent = userDoc.balance.toFixed(0);
   document.getElementById("walletUsdt").textContent = `≈ $${coinsToUsdt(userDoc.balance).toFixed(4)} USDT`;
   const notice = document.getElementById("withdrawNotice");
@@ -458,6 +494,7 @@ function render(){
   notice.textContent = `Minimum withdrawal: ${CONFIG.MIN_WITHDRAW_COINS} NVX (≈ $${minUsdt.toFixed(2)} USDT). This threshold is fixed and won't increase.`;
   document.getElementById("withdrawBtn").disabled = userDoc.balance < CONFIG.MIN_WITHDRAW_COINS;
 }
+setInterval(()=>{ if(userDoc) render(); }, 30000); // keep countdowns fresh
 
 /* =========================================================
    ACTIONS
@@ -489,14 +526,10 @@ document.getElementById("claimBonusBtn").addEventListener("click", async ()=>{
 document.getElementById("watchAdBtn").addEventListener("click", async ()=>{
   const adsToday = userDoc.lastAdDate === todayStr() ? userDoc.adsWatchedToday : 0;
   if (adsToday >= CONFIG.MAX_ADS_PER_DAY) return;
-
-  if (!window.Adsgram){
-    toast("Ad SDK not loaded — try again in a moment.");
-    return;
-  }
+  if (!window.Adsgram){ toast("Ad SDK not loaded — try again in a moment."); return; }
   try{
     const AdController = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
-    await AdController.show(); // resolves only if the ad was actually watched
+    await AdController.show();
     const isNewDay = userDoc.lastAdDate !== todayStr();
     await userRef.update({
       balance: firebase.firestore.FieldValue.increment(CONFIG.COINS_PER_AD),
@@ -507,6 +540,63 @@ document.getElementById("watchAdBtn").addEventListener("click", async ()=>{
   } catch(e){
     toast("Ad skipped — no reward this time.");
   }
+});
+
+// Monetag: Direct Link has no "ad watched" callback, so we open the link
+// then require a short wait before Claim unlocks, plus a daily cap.
+document.getElementById("monetagBtn").addEventListener("click", function(){
+  const btn = this;
+  const monetagToday = userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0;
+
+  if (btn.dataset.armed === "1"){
+    // second click = claim
+    (async ()=>{
+      const isNewDay = userDoc.lastMonetagDate !== todayStr();
+      await userRef.update({
+        balance: firebase.firestore.FieldValue.increment(CONFIG.MONETAG_COINS_PER_AD),
+        monetagWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
+        lastMonetagDate: todayStr()
+      });
+      toast(`+${CONFIG.MONETAG_COINS_PER_AD} NVX earned!`);
+      delete btn.dataset.armed;
+    })();
+    return;
+  }
+
+  if (monetagToday >= CONFIG.MAX_MONETAG_PER_DAY) return;
+  if (tg) tg.openLink(CONFIG.MONETAG_LINK); else window.open(CONFIG.MONETAG_LINK, "_blank");
+
+  btn.disabled = true;
+  let secs = CONFIG.MONETAG_VERIFY_SECONDS;
+  btn.textContent = `Wait ${secs}s`;
+  const iv = setInterval(()=>{
+    secs--;
+    if (secs<=0){
+      clearInterval(iv);
+      btn.disabled = false;
+      btn.dataset.armed = "1";
+      btn.textContent = "Claim";
+    } else {
+      btn.textContent = `Wait ${secs}s`;
+    }
+  },1000);
+});
+
+// Telegram engagement tasks (honor system + cooldown)
+document.getElementById("telegramTaskList").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-task]");
+  if (!btn || btn.disabled) return;
+  const task = CONFIG.TELEGRAM_TASKS.find(t=>t.id===btn.dataset.task);
+  if (!task) return;
+  if (tg) tg.openTelegramLink(task.link); else window.open(task.link,"_blank");
+
+  btn.disabled = true;
+  btn.textContent = "Verifying…";
+  setTimeout(async ()=>{
+    await userRef.update({ [`taskClaims.${task.id}`]: Date.now(),
+      balance: firebase.firestore.FieldValue.increment(task.reward) });
+    toast(`+${task.reward} NVX earned!`);
+  }, 8000);
 });
 
 document.getElementById("copyLinkBtn").addEventListener("click", ()=>{
@@ -523,15 +613,11 @@ document.getElementById("withdrawBtn").addEventListener("click", async ()=>{
   const addr = document.getElementById("walletAddress").value.trim();
   if (!addr){ toast("Enter your USDT (TRC20) address first."); return; }
   if (userDoc.balance < CONFIG.MIN_WITHDRAW_COINS){ toast("Balance below minimum withdrawal."); return; }
-
-  const amountCoins = userDoc.balance; // withdraw full balance; change to a fixed chunk if you prefer
+  const amountCoins = userDoc.balance;
   const amountUsdt = coinsToUsdt(amountCoins);
-
   await db.collection("withdrawals").add({
-    userId, username: userName,
-    walletAddress: addr,
-    amountCoins, amountUsdt,
-    status: "pending",
+    userId, username: userName, walletAddress: addr,
+    amountCoins, amountUsdt, status: "pending",
     requestedAt: firebase.firestore.FieldValue.serverTimestamp()
   });
   await userRef.update({ balance: firebase.firestore.FieldValue.increment(-amountCoins) });
@@ -540,15 +626,12 @@ document.getElementById("withdrawBtn").addEventListener("click", async ()=>{
 });
 
 /* =========================================================
-   LEADERBOARD (real users only, no seeded/fake data)
+   LEADERBOARD (real users only)
    ========================================================= */
 async function loadLeaderboard(){
   const el = document.getElementById("leaderboardList");
   const snap = await db.collection("users")
-    .where("referralCount", ">", 0)
-    .orderBy("referralCount", "desc")
-    .limit(10)
-    .get();
+    .where("referralCount", ">", 0).orderBy("referralCount", "desc").limit(10).get();
   if (snap.empty){
     el.innerHTML = `<div class="empty-state">No referrals yet — be the first to invite a friend!</div>`;
     return;
@@ -565,20 +648,10 @@ async function loadLeaderboard(){
   });
 }
 
-/* =========================================================
-   TRANSACTION HISTORY
-   ========================================================= */
 async function loadTxHistory(){
   const el = document.getElementById("txList");
-  const snap = await db.collection("withdrawals")
-    .where("userId","==",userId)
-    .orderBy("requestedAt","desc")
-    .limit(20)
-    .get();
-  if (snap.empty){
-    el.innerHTML = `<div class="empty-state">No transactions yet</div>`;
-    return;
-  }
+  const snap = await db.collection("withdrawals").where("userId","==",userId).orderBy("requestedAt","desc").limit(20).get();
+  if (snap.empty){ el.innerHTML = `<div class="empty-state">No transactions yet</div>`; return; }
   el.innerHTML = "";
   snap.forEach(doc=>{
     const d = doc.data();
@@ -589,9 +662,6 @@ async function loadTxHistory(){
   });
 }
 
-/* =========================================================
-   NAV
-   ========================================================= */
 document.querySelectorAll(".nav-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
@@ -603,40 +673,15 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
   });
 });
 
-/* =========================================================
-   BOOT
-   ========================================================= */
 (async function boot(){
   try{
     await ensureUser();
-    userRef.onSnapshot(snap=>{
-      if (snap.exists){ userDoc = snap.data(); render(); }
-    });
+    userRef.onSnapshot(snap=>{ if (snap.exists){ userDoc = snap.data(); render(); } });
   } catch(e){
     console.error(e);
     toast("Could not connect — check your Firebase config.");
   }
 })();
-
-  </script>
-
-  <!-- Firebase Configuration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-    
-    const firebaseConfig = {
-      apiKey: "AIzaSyBEfTzbuf_OIQC1NcQqmQg_0QBIpbvfgDU",
-      authDomain: "novexa-mine.firebaseapp.com",
-      projectId: "novexa-mine",
-      storageBucket: "novexa-mine.firebasestorage.app",
-      messagingSenderId: "549658268581",
-      appId: "1:549658268581:web:72e70f3ab830e65e448e4c",
-      measurementId: "G-6SRJEMSY8M"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
+</script>
 </body>
 </html>
