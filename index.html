@@ -98,7 +98,7 @@
             display: flex;
         }
 
-        /* Teal Banner Card */
+        /* Banner Card */
         .banner-card {
             background: var(--teal-gradient);
             border-radius: 20px;
@@ -146,7 +146,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
-        /* Mining Graphic Display */
+        /* Mining Display */
         .mining-display {
             text-align: center;
             padding: 20px 0;
@@ -156,6 +156,9 @@
             font-size: 80px;
             margin-bottom: 10px;
             filter: drop-shadow(0 10px 15px rgba(20, 184, 166, 0.3));
+        }
+
+        .shell-icon.active-mining {
             animation: float 3s ease-in-out infinite;
         }
 
@@ -222,14 +225,21 @@
             font-size: 10px;
             color: var(--primary-teal);
             font-weight: bold;
+            border: 1px solid transparent;
         }
 
-        .streak-day.active {
+        .streak-day.completed {
             background: var(--primary-teal);
             color: #fff;
         }
 
-        /* Task & Ad Item */
+        .streak-day.current {
+            border-color: var(--primary-teal);
+            background: #fff;
+            color: var(--primary-teal);
+        }
+
+        /* Task Item */
         .task-item {
             display: flex;
             align-items: center;
@@ -269,19 +279,7 @@
             cursor: pointer;
         }
 
-        /* Leaderboard Items */
-        .rank-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: #fff;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Navbar Bottom */
+        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -308,24 +306,51 @@
             width: 20%;
         }
 
-        .nav-link i {
-            font-size: 18px;
-        }
+        .nav-link i { font-size: 18px; }
 
         .nav-link.active {
             color: var(--primary-teal);
             font-weight: bold;
         }
+
+        /* Telegram In-App Ad Modal Overlay */
+        .ad-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .ad-modal-header {
+            background: #fff;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ad-modal-body {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Top Header -->
     <div class="top-header">
         <div class="brand-info">
             <div class="brand-icon">🐚</div>
             <div class="brand-text">
-                <h4>Nautilus Mine</h4>
+                <h4 id="userNameHeader">Nautilus Mine</h4>
                 <p>STARLIGHT PROTOCOL • SEASON 1</p>
             </div>
         </div>
@@ -336,123 +361,85 @@
 
     <!-- Stats Bar -->
     <div class="stats-bar">
-        <span>Balance: <b id="topBal" style="color: var(--primary-teal);">297</b> Nautilus</span>
-        <span>Level: <b style="color: var(--primary-teal);">Lv.3 Refined</b></span>
+        <span>Balance: <b id="topBal" style="color: var(--primary-teal);">0</b> Nautilus</span>
+        <span>Level: <b style="color: var(--primary-teal);" id="userLevelText">Lv.1 Novice</b></span>
     </div>
 
     <!-- 1. HOME TAB -->
     <div id="home-tab" class="tab-content active">
-        <!-- Banner -->
         <div class="banner-card">
-            <div class="banner-title">• Opu</div>
-            <div class="banner-balance"><span id="mainBal">297</span>.00</div>
-            <div class="banner-sub">Nautilus Coins ≈ $0.01 USDT</div>
+            <div class="banner-title" id="bannerUser">• User</div>
+            <div class="banner-balance"><span id="mainBal">0</span>.00</div>
+            <div class="banner-sub">Nautilus Coins ≈ $0.00 USDT</div>
             <div class="level-pill">
-                <span style="font-size: 16px;">3</span><br>
-                <span style="font-size: 9px; opacity: 0.8;">Lv.3</span>
+                <span style="font-size: 16px;" id="pillLevelNum">1</span><br>
+                <span style="font-size: 9px; opacity: 0.8;" id="pillLevelText">Lv.1</span>
             </div>
         </div>
 
-        <!-- Mining Display -->
         <div class="white-card mining-display">
-            <div class="status-tag">
-                <span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span> MINING IN PROGRESS
+            <div class="status-tag" id="statusBadge">
+                <span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span> IDLE
             </div>
-            <div class="shell-icon">🐚</div>
-            <div style="font-size: 12px; color: var(--primary-teal); font-weight: bold;">LV.3 Refined</div>
-            <div style="font-size: 10px; color: var(--text-gray); margin-top: 10px;">NEXT YIELD IN</div>
-            <div class="timer-text" id="homeTimer">00:48:16</div>
-            <button class="btn-teal" onclick="startMining()">⚡ Mining Active...</button>
+            <div class="shell-icon" id="shellIcon">🐚</div>
+            <div style="font-size: 12px; color: var(--primary-teal); font-weight: bold;" id="minerStatusTitle">LV.1 Novice Miner</div>
+            <div style="font-size: 10px; color: var(--text-gray); margin-top: 10px;">REMAINING TIME</div>
+            <div class="timer-text" id="homeTimer">08:00:00</div>
+            <button class="btn-teal" id="startMiningBtn" onclick="toggleMining()">⚡ Start Mining</button>
         </div>
 
-        <!-- Daily Bonus -->
         <div class="white-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h4 style="font-size: 14px;">Daily Bonus</h4>
                     <p style="font-size: 11px; color: var(--text-gray);">Keep your streak alive for rewards</p>
                 </div>
-                <div style="background: #fff7ed; color: #ea580c; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold;">
-                    🔥 Day 4
+                <div style="background: #fff7ed; color: #ea580c; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold;" id="streakBadge">
+                    🔥 Day 1
                 </div>
             </div>
 
-            <div class="streak-grid">
-                <div class="streak-day active">✓ D1</div>
-                <div class="streak-day active">✓ D2</div>
-                <div class="streak-day active">✓ D3</div>
-                <div class="streak-day active">✓ D4</div>
-                <div class="streak-day" style="border: 1px solid var(--primary-teal);">⭐ D5</div>
-                <div class="streak-day">D6</div>
-                <div class="streak-day">D7</div>
-            </div>
+            <div class="streak-grid" id="streakGrid"></div>
 
-            <button class="btn-teal" style="margin-top: 8px;" onclick="claimDaily()">🎁 Claim Daily Bonus (+16)</button>
+            <button class="btn-teal" id="claimDailyBtn" style="margin-top: 8px;" onclick="claimDaily()">🎁 Claim Daily Bonus (+10)</button>
         </div>
     </div>
 
     <!-- 2. EARN TAB -->
     <div id="earn-tab" class="tab-content">
-        <!-- Watch Ads Card -->
         <div class="banner-card">
             <h4>🎬 Watch & Earn</h4>
             <p style="font-size: 11px; opacity: 0.9; margin-top: 2px;">Earn +20 Nautilus Coins per ad watched</p>
-            <div style="margin: 12px 0 6px 0; font-size: 11px;">Daily Progress: <b>10 / 12 ads</b></div>
+            <div style="margin: 12px 0 6px 0; font-size: 11px;">Daily Progress: <b id="adProgressText">0 / 12 ads</b></div>
             <div style="height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
-                <div style="width: 80%; height: 100%; background: #fff;"></div>
+                <div id="adProgressBar" style="width: 0%; height: 100%; background: #fff; transition: width 0.3s;"></div>
             </div>
-            <button class="btn-teal" style="background: #fff; color: var(--primary-teal);" onclick="watchMonetagAd()">
-                ▶ Watch Ad (+20 Nautilus Coins)
+            <button class="btn-teal" style="background: #fff; color: var(--primary-teal);" onclick="watchInAppAd()">
+                ▶ Watch Ad (+20 Coins)
             </button>
         </div>
 
-        <!-- Ad Missions -->
         <div class="white-card">
             <h4 style="font-size: 14px; margin-bottom: 10px;">🎬 Ad Missions</h4>
             <div class="task-item">
                 <div class="task-info">
                     <div class="task-icon">🚀</div>
                     <div>
-                        <div style="font-size: 12px; font-weight: bold;">Play.Win.Withdraw USDT</div>
+                        <div style="font-size: 12px; font-weight: bold;">Play & Earn Bonus</div>
                         <div style="font-size: 11px; color: var(--primary-teal);">+20 Coins</div>
                     </div>
                 </div>
-                <button class="btn-sm" onclick="watchMonetagAd()">GO</button>
+                <button class="btn-sm" onclick="watchInAppAd()">GO</button>
             </div>
             <div class="task-item">
                 <div class="task-info">
                     <div class="task-icon">🎮</div>
                     <div>
-                        <div style="font-size: 12px; font-weight: bold;">Guess.Win.Withdraw USDT</div>
+                        <div style="font-size: 12px; font-weight: bold;">Special Sponsor Ad</div>
                         <div style="font-size: 11px; color: var(--primary-teal);">+20 Coins</div>
                     </div>
                 </div>
-                <button class="btn-sm" onclick="watchMonetagAd()">GO</button>
-            </div>
-        </div>
-
-        <!-- Telegram Missions -->
-        <div class="white-card">
-            <h4 style="font-size: 14px; margin-bottom: 10px;">✈️ Complete Tasks</h4>
-            <div class="task-item">
-                <div class="task-info">
-                    <div class="task-icon">📢</div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: bold;">Bsc Samurai</div>
-                        <div style="font-size: 11px; color: var(--text-gray);">+10 Nautilus Coins</div>
-                    </div>
-                </div>
-                <span style="color: var(--primary-teal); font-weight: bold;">✓</span>
-            </div>
-            <div class="task-item">
-                <div class="task-info">
-                    <div class="task-icon">💎</div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: bold;">Crypto Binaca</div>
-                        <div style="font-size: 11px; color: var(--text-gray);">+10 Nautilus Coins</div>
-                    </div>
-                </div>
-                <span style="color: var(--primary-teal); font-weight: bold;">✓</span>
+                <button class="btn-sm" onclick="watchInAppAd()">GO</button>
             </div>
         </div>
     </div>
@@ -461,20 +448,14 @@
     <div id="mining-tab" class="tab-content">
         <div class="white-card mining-display">
             <div class="shell-icon">🐚</div>
-            <h3>LV.3 Refined</h3>
+            <h3 id="miningTabLevel">LV.1 Novice</h3>
             <div style="display: flex; justify-content: space-around; margin: 15px 0; font-size: 12px;">
-                <div>LEVEL<br><b style="color: var(--primary-teal);">Lv.3</b></div>
-                <div>MULTIPLIER<br><b style="color: var(--primary-teal);">x1.5</b></div>
-                <div>PROGRESS<br><b style="color: var(--primary-teal);">60%</b></div>
+                <div>LEVEL<br><b style="color: var(--primary-teal);" id="mLevel">Lv.1</b></div>
+                <div>MULTIPLIER<br><b style="color: var(--primary-teal);" id="mMult">x1.0</b></div>
+                <div>RATE<br><b style="color: var(--primary-teal);">10/hr</b></div>
             </div>
-            <div class="timer-text" id="miningTabTimer">00:47:37</div>
-            <button class="btn-teal">⚡ Mining Active...</button>
-        </div>
-
-        <div class="white-card">
-            <h4>Nautilus Evolution</h4>
-            <p style="font-size: 11px; color: var(--text-gray); margin-bottom: 12px;">Upgrade your miner level</p>
-            <button class="btn-teal" style="opacity: 0.7;">🔒 Need 3,703 More Nautilus</button>
+            <div class="timer-text" id="miningTabTimer">08:00:00</div>
+            <button class="btn-teal" onclick="toggleMining()">⚡ Start / Check Mining</button>
         </div>
     </div>
 
@@ -482,69 +463,28 @@
     <div id="invite-tab" class="tab-content">
         <div class="banner-card">
             <h4>Your Network</h4>
-            <p style="font-size: 11px; margin: 4px 0 12px 0;">Earn +100 Nautilus Coins per recruit • 5% lifetime commission</p>
-            <div style="display: flex; gap: 10px; text-align: center;">
+            <p style="font-size: 11px; margin: 4px 0 12px 0;">Earn +100 Nautilus Coins per referral</p>
+            <div style="display: flex; gap: 10px; text-align: center; margin-bottom: 12px;">
                 <div style="flex:1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 10px;">
-                    <span style="font-size: 10px;">RECRUITED</span><br><b>4</b>
+                    <span style="font-size: 10px;">RECRUITED</span><br><b id="refCount">0</b>
                 </div>
                 <div style="flex:1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 10px;">
-                    <span style="font-size: 10px;">COINS EARNED</span><br><b>765</b>
+                    <span style="font-size: 10px;">EARNED</span><br><b id="refEarned">0</b>
                 </div>
             </div>
-            <button class="btn-teal" style="margin-top: 12px; background: #fff; color: var(--primary-teal);" onclick="copyReferral()">
-                ✈ Invite via Telegram
+            <button class="btn-teal" style="background: #fff; color: var(--primary-teal);" onclick="copyReferral()">
+                ✈ Invite Friends
             </button>
-        </div>
-
-        <div class="white-card">
-            <h4 style="font-size: 14px; margin-bottom: 10px;">Leaderboard</h4>
-            <div class="rank-item">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <b style="color: var(--primary-teal);">1</b>
-                    <div><b>Rahman islam</b><br><span style="font-size: 10px; color: var(--text-gray);">@Rahmanislamq</span></div>
-                </div>
-                <b style="color: var(--primary-teal);">1,968</b>
-            </div>
-            <div class="rank-item">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <b>2</b>
-                    <div><b>Casey Web3</b><br><span style="font-size: 10px; color: var(--text-gray);">@CaseyWeb3</span></div>
-                </div>
-                <b>1,346</b>
-            </div>
         </div>
     </div>
 
     <!-- 5. WALLET TAB -->
     <div id="wallet-tab" class="tab-content">
         <div class="banner-card">
-            <div class="banner-title">• Vault Balance</div>
-            <div class="banner-balance"><span id="walletBal">297</span>.00</div>
-            <div class="banner-sub">Nautilus Coins ≈ $0.01 USDT</div>
+            <div class="banner-title">• Balance Vault</div>
+            <div class="banner-balance"><span id="walletBal">0</span>.00</div>
             <div style="margin-top: 15px; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 10px; font-size: 11px;">
-                🔒 Vault Sealed — Mine 703 more Nautilus Coins to unlock withdrawals.
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <div class="white-card" style="flex: 1; text-align: center;">
-                <span style="font-size: 10px; color: var(--text-gray);">REFERRALS</span>
-                <h3 style="color: var(--primary-teal); margin-top: 4px;">4</h3>
-            </div>
-            <div class="white-card" style="flex: 1; text-align: center;">
-                <span style="font-size: 10px; color: var(--text-gray);">TOTAL MINED</span>
-                <h3 style="color: var(--primary-teal); margin-top: 4px;">15,023</h3>
-            </div>
-        </div>
-
-        <div class="white-card">
-            <h4>TRANSACTION HISTORY</h4>
-            <div class="task-item" style="margin-top: 8px;">
-                <div>
-                    <b>1,880 Nautilus Coins</b>
-                    <div style="font-size: 10px; color: var(--text-gray);">9/17/2026</div>
-                </div>
-                <span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: bold;">✓ APPROVED</span>
+                🔒 Vault Locked — Earn coins and complete daily streak to unlock.
             </div>
         </div>
     </div>
@@ -573,17 +513,69 @@
         </div>
     </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+    <!-- Telegram In-App Ad Modal -->
+    <div id="adModal" class="ad-modal">
+        <div class="ad-modal-header">
+            <span style="font-size: 12px; font-weight: bold; color: var(--text-dark);">Sponsor Ad</span>
+            <button onclick="closeAdModal()" style="background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 10px; font-weight: bold; cursor: pointer;">Close & Claim +20 Coins ✕</button>
+        </div>
+        <iframe id="adFrame" class="ad-modal-body" src=""></iframe>
+    </div>
 
-        let balance = parseInt(localStorage.getItem('nautilus_bal')) || 297;
+    <script>
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.expand();
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                let name = tg.initDataUnsafe.user.first_name || "User";
+                document.getElementById('userNameHeader').innerText = name;
+                document.getElementById('bannerUser').innerText = "• " + name;
+            }
+        }
+
+        const MINING_DURATION = 8 * 60 * 60 * 1000; // 8 Hours
+
+        // Dynamic Persistent State Management
+        let balance = localStorage.getItem('nautilus_bal') !== null ? parseInt(localStorage.getItem('nautilus_bal')) : 0;
+        let streakDay = localStorage.getItem('nautilus_streak') !== null ? parseInt(localStorage.getItem('nautilus_streak')) : 1;
+        let lastClaimDate = localStorage.getItem('nautilus_last_claim') || "";
+        let adsWatched = localStorage.getItem('nautilus_ads') !== null ? parseInt(localStorage.getItem('nautilus_ads')) : 0;
+        let miningEndTime = localStorage.getItem('nautilus_mining_end') ? parseInt(localStorage.getItem('nautilus_mining_end')) : 0;
+        let refCount = localStorage.getItem('nautilus_refs') !== null ? parseInt(localStorage.getItem('nautilus_refs')) : 0;
+
+        function getLevel(bal) {
+            if (bal >= 1000) return { level: 3, name: "Lv.3 Master", mult: "x2.0" };
+            if (bal >= 300) return { level: 2, name: "Lv.2 Advanced", mult: "x1.5" };
+            return { level: 1, name: "Lv.1 Novice", mult: "x1.0" };
+        }
 
         function updateUI() {
+            // Update Balance
             document.getElementById('mainBal').innerText = balance;
             document.getElementById('topBal').innerText = balance;
             document.getElementById('walletBal').innerText = balance;
             localStorage.setItem('nautilus_bal', balance);
+
+            // Dynamic Level Progression based on user balance
+            let lvlInfo = getLevel(balance);
+            document.getElementById('userLevelText').innerText = lvlInfo.name;
+            document.getElementById('pillLevelNum').innerText = lvlInfo.level;
+            document.getElementById('pillLevelText').innerText = `Lv.${lvlInfo.level}`;
+            document.getElementById('minerStatusTitle').innerText = `${lvlInfo.name} Miner`;
+            document.getElementById('miningTabLevel').innerText = lvlInfo.name;
+            document.getElementById('mLevel').innerText = `Lv.${lvlInfo.level}`;
+            document.getElementById('mMult').innerText = lvlInfo.mult;
+
+            // Ads Progress
+            document.getElementById('adProgressText').innerText = `${adsWatched} / 12 ads`;
+            document.getElementById('adProgressBar').style.width = `${Math.min((adsWatched / 12) * 100, 100)}%`;
+            localStorage.setItem('nautilus_ads', adsWatched);
+
+            // Referrals
+            document.getElementById('refCount').innerText = refCount;
+            document.getElementById('refEarned').innerText = refCount * 100;
+
+            renderDailyBonus();
         }
 
         function addCoins(amount) {
@@ -591,6 +583,122 @@
             updateUI();
         }
 
+        /* Daily Bonus Setup */
+        function renderDailyBonus() {
+            document.getElementById('streakBadge').innerText = `🔥 Day ${streakDay}`;
+            let grid = document.getElementById('streakGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 7; i++) {
+                let dayDiv = document.createElement('div');
+                dayDiv.className = 'streak-day';
+                if (i < streakDay) {
+                    dayDiv.classList.add('completed');
+                    dayDiv.innerText = `✓ D${i}`;
+                } else if (i === streakDay) {
+                    dayDiv.classList.add('current');
+                    dayDiv.innerText = `⭐ D${i}`;
+                } else {
+                    dayDiv.innerText = `D${i}`;
+                }
+                grid.appendChild(dayDiv);
+            }
+
+            let todayStr = new Date().toDateString();
+            let claimBtn = document.getElementById('claimDailyBtn');
+            if (lastClaimDate === todayStr) {
+                claimBtn.innerText = "✓ Claimed Today";
+                claimBtn.style.opacity = "0.6";
+                claimBtn.disabled = true;
+            } else {
+                claimBtn.innerText = `🎁 Claim Daily Bonus (+${streakDay * 10})`;
+                claimBtn.style.opacity = "1";
+                claimBtn.disabled = false;
+            }
+        }
+
+        function claimDaily() {
+            let todayStr = new Date().toDateString();
+            if (lastClaimDate !== todayStr) {
+                let reward = streakDay * 10;
+                addCoins(reward);
+                lastClaimDate = todayStr;
+                localStorage.setItem('nautilus_last_claim', lastClaimDate);
+                if (streakDay < 7) streakDay++;
+                else streakDay = 1;
+                localStorage.setItem('nautilus_streak', streakDay);
+                updateUI();
+                alert(`Claimed +${reward} Nautilus Coins!`);
+            }
+        }
+
+        /* Dynamic Realtime Mining */
+        function toggleMining() {
+            let now = Date.now();
+            if (now >= miningEndTime) {
+                miningEndTime = now + MINING_DURATION;
+                localStorage.setItem('nautilus_mining_end', miningEndTime);
+                updateMiningTimer();
+            }
+        }
+
+        function updateMiningTimer() {
+            let now = Date.now();
+            let remaining = miningEndTime - now;
+
+            let homeBtn = document.getElementById('startMiningBtn');
+            let shellIcon = document.getElementById('shellIcon');
+            let statusBadge = document.getElementById('statusBadge');
+
+            if (remaining > 0) {
+                let hours = Math.floor(remaining / (1000 * 60 * 60));
+                let minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+                let formatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                document.getElementById('homeTimer').innerText = formatted;
+                document.getElementById('miningTabTimer').innerText = formatted;
+
+                homeBtn.innerText = "⚡ Mining Active...";
+                shellIcon.classList.add('active-mining');
+                statusBadge.innerHTML = `<span style="height: 6px; width: 6px; background: #10b981; border-radius: 50%;"></span> MINING IN PROGRESS`;
+                statusBadge.style.background = "#d1fae5";
+                statusBadge.style.color = "#047857";
+            } else {
+                document.getElementById('homeTimer').innerText = "08:00:00";
+                document.getElementById('miningTabTimer').innerText = "08:00:00";
+                
+                homeBtn.innerText = "⚡ Start Mining";
+                shellIcon.classList.remove('active-mining');
+                statusBadge.innerHTML = `<span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span> IDLE`;
+                statusBadge.style.background = "#fef3c7";
+                statusBadge.style.color = "#d97706";
+            }
+        }
+
+        setInterval(updateMiningTimer, 1000);
+
+        /* In-App Direct Ad Modal Opener */
+        const directAdUrl = "https://omg10.com/4/11858728";
+
+        function watchInAppAd() {
+            let modal = document.getElementById('adModal');
+            let frame = document.getElementById('adFrame');
+            frame.src = directAdUrl;
+            modal.style.display = 'flex';
+        }
+
+        function closeAdModal() {
+            let modal = document.getElementById('adModal');
+            let frame = document.getElementById('adFrame');
+            frame.src = '';
+            modal.style.display = 'none';
+            
+            adsWatched++;
+            addCoins(20);
+        }
+
+        /* Navigation */
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
@@ -598,29 +706,17 @@
             if (el) el.classList.add('active');
         }
 
-        // MONETAG AD WATCH FUNCTION
-        function watchMonetagAd() {
-            let adLink = "https://omg10.com/4/11858728";
-            if (tg.openLink) {
-                tg.openLink(adLink);
-            } else {
-                window.open(adLink, '_blank');
-            }
-            addCoins(20);
-        }
-
-        function claimDaily() {
-            addCoins(16);
-            alert("Daily Bonus Claimed! +16 Nautilus Coins");
-        }
-
         function copyReferral() {
             let link = "https://t.me/NautilusMineBot/mine?startapp=ref";
-            navigator.clipboard.writeText(link);
-            alert("Invite link copied to clipboard!");
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(link);
+                alert("Invite link copied to clipboard!");
+            }
         }
 
+        // Initialize UI
         updateUI();
+        updateMiningTimer();
     </script>
 </body>
 </html>
