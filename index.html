@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Nautilus Mine - Official Mini App</title>
     
-    <!-- Monetag Telegram Mini App SDK -->
-    <script src="//1ibt1.com/sdk.js" data-zone="11859054" data-sdk="show_11859054"></script>
-
+    <!-- Monetag Telegram Mini App SDK (Fixed Protocol) -->
+    <script src="https://1ibt1.com/sdk.js" data-zone="11859054" data-sdk="show_11859054"></script>
+    
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -69,8 +69,16 @@
             font-size: 18px;
         }
 
-        .brand-text h4 { font-size: 14px; color: var(--text-dark); }
-        .brand-text p { font-size: 10px; color: var(--text-gray); letter-spacing: 0.5px; }
+        .brand-text h4 {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .brand-text p {
+            font-size: 10px;
+            color: var(--text-gray);
+            letter-spacing: 0.5px;
+        }
 
         .stats-bar {
             background: #fff;
@@ -89,7 +97,10 @@
             gap: 16px;
         }
 
-        .tab-content.active { display: flex; }
+        /* Fixed Class Combinations */
+        .tab-content.active {
+            display: flex;
+        }
 
         .banner-card {
             background: var(--teal-gradient);
@@ -100,13 +111,26 @@
             box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
         }
 
-        .banner-title { font-size: 12px; opacity: 0.9; }
-        .banner-balance { font-size: 32px; font-weight: 800; margin: 4px 0; }
-        .banner-sub { font-size: 12px; opacity: 0.85; }
+        .banner-title {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .banner-balance {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 4px 0;
+        }
+
+        .banner-sub {
+            font-size: 12px;
+            opacity: 0.85;
+        }
 
         .level-pill {
             position: absolute;
-            top: 20px; right: 20px;
+            top: 20px;
+            right: 20px;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(5px);
             padding: 6px 14px;
@@ -124,7 +148,10 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
-        .mining-display { text-align: center; padding: 20px 0; }
+        .mining-display {
+            text-align: center;
+            padding: 20px 0;
+        }
 
         .shell-icon {
             font-size: 80px;
@@ -175,7 +202,9 @@
             gap: 8px;
         }
 
-        .btn-teal:active { transform: scale(0.98); }
+        .btn-teal:active {
+            transform: scale(0.98);
+        }
 
         .streak-grid {
             display: grid;
@@ -194,7 +223,10 @@
             font-weight: bold;
         }
 
-        .streak-day.active { background: var(--primary-teal); color: #fff; }
+        .streak-day.active {
+            background: var(--primary-teal);
+            color: #fff;
+        }
 
         .task-item {
             display: flex;
@@ -204,16 +236,25 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .task-item:last-child { border-bottom: none; }
+        .task-item:last-child {
+            border-bottom: none;
+        }
 
-        .task-info { display: flex; align-items: center; gap: 12px; }
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
         .task-icon {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             background: var(--teal-light);
             border-radius: 10px;
             color: var(--primary-teal);
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
         }
 
@@ -228,20 +269,11 @@
             cursor: pointer;
         }
 
-        .rank-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: #fff;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-        }
-
         .bottom-nav {
             position: fixed;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             height: 65px;
             background: #ffffff;
             border-top: 1px solid var(--border-color);
@@ -263,8 +295,14 @@
             width: 20%;
         }
 
-        .nav-link i { font-size: 18px; }
-        .nav-link.active { color: var(--primary-teal); font-weight: bold; }
+        .nav-link i {
+            font-size: 18px;
+        }
+
+        .nav-link.active {
+            color: var(--primary-teal);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -303,7 +341,8 @@
 
         <div class="white-card mining-display">
             <div class="status-tag">
-                <span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span> MINING IN PROGRESS
+                <span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span>
+                MINING IN PROGRESS
             </div>
             <div class="shell-icon">🐚</div>
             <div style="font-size: 12px; color: var(--primary-teal); font-weight: bold;">LV.3 Refined</div>
@@ -322,7 +361,6 @@
                     🔥 Day 4
                 </div>
             </div>
-
             <div class="streak-grid">
                 <div class="streak-day active">✓ D1</div>
                 <div class="streak-day active">✓ D2</div>
@@ -332,7 +370,6 @@
                 <div class="streak-day">D6</div>
                 <div class="streak-day">D7</div>
             </div>
-
             <button class="btn-teal" style="margin-top: 8px;" onclick="claimDaily()">🎁 Claim Daily Bonus (+16)</button>
         </div>
     </div>
@@ -372,20 +409,6 @@
                     </div>
                 </div>
                 <button class="btn-sm" onclick="watchInstantAd()">GO</button>
-            </div>
-        </div>
-
-        <div class="white-card">
-            <h4 style="font-size: 14px; margin-bottom: 10px;">✈️ Complete Tasks</h4>
-            <div class="task-item">
-                <div class="task-info">
-                    <div class="task-icon">📢</div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: bold;">Bsc Samurai</div>
-                        <div style="font-size: 11px; color: var(--text-gray);">+10 Nautilus Coins</div>
-                    </div>
-                </div>
-                <span style="color: var(--primary-teal); font-weight: bold;">✓</span>
             </div>
         </div>
     </div>
@@ -450,7 +473,7 @@
     </div>
 
     <script>
-        // 1. Initialize Telegram WebApp & Global Variables
+        // Telegram WebApp Setup
         let tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) {
             tg.expand();
@@ -459,7 +482,6 @@
 
         let balance = parseInt(localStorage.getItem('nautilus_bal')) || 297;
 
-        // Update Balance Function
         function updateUI() {
             let mainB = document.getElementById('mainBal');
             let topB = document.getElementById('topBal');
@@ -468,7 +490,7 @@
             if (mainB) mainB.innerText = balance;
             if (topB) topB.innerText = balance;
             if (wallB) wallB.innerText = balance;
-
+            
             localStorage.setItem('nautilus_bal', balance);
         }
 
@@ -477,39 +499,36 @@
             updateUI();
         }
 
-        // Tab Switching
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+
             let targetTab = document.getElementById(tabId);
             if (targetTab) targetTab.classList.add('active');
             if (el) el.classList.add('active');
         }
 
-        // 2. Preload Ad automatically when app opens (Monetag Official Requirement)
+        // Preload Monetag Ad
         window.addEventListener('load', () => {
-            if (typeof show_11859054 === 'function') {
-                show_11859054({ type: 'preload' }).catch(e => console.log("Preload info:", e));
+            if (typeof window.show_11859054 === 'function') {
+                window.show_11859054({ type: 'preload' }).catch(e => console.log("Preload info:", e));
             }
         });
 
-        // 3. WATCH AD FUNCTION (Guaranteed Fallback)
+        // Watch Ad Logic
         function watchInstantAd() {
             let directUrl = "https://omg10.com/4/11858728";
 
-            // Try Monetag SDK First
-            if (typeof show_11859054 === 'function') {
-                show_11859054().then(() => {
+            if (typeof window.show_11859054 === 'function') {
+                window.show_11859054().then(() => {
                     addCoins(20);
                     alert("Success! +20 Coins added.");
-                    // Preload for next click
-                    show_11859054({ type: 'preload' }).catch(() => {});
+                    window.show_11859054({ type: 'preload' }).catch(() => {});
                 }).catch((err) => {
-                    // SDK Failed or No Fill -> Open Direct Link
+                    console.warn("Monetag SDK Load Failed, redirecting to Direct Link", err);
                     openBackupAd(directUrl);
                 });
             } else {
-                // SDK not loaded -> Open Direct Link
                 openBackupAd(directUrl);
             }
         }
