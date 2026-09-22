@@ -2,306 +2,96 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Novexa Mine</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Adsgram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     
     <style>
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --accent-color: #00e5ff;
-            --text-color: #ffffff;
-            --text-secondary: #8b949e;
-            --btn-green: #2ea44f;
-        }
-
         body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            padding: 20px;
         }
-
-        /* Top Header */
-        .header {
-            padding: 15px;
-            background: var(--card-bg);
-            text-align: center;
-            border-bottom: 1px solid #30363d;
+        .container {
+            max-width: 400px;
+            margin: auto;
         }
-
-        .balance-card {
-            font-size: 24px;
+        .coin-icon {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+        .balance {
+            font-size: 28px;
             font-weight: bold;
-            color: var(--accent-color);
+            color: #ffd700;
         }
-
-        /* Content Views */
-        .tab-content {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Mining Section */
-        .mining-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .mining-btn {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #00e5ff 0%, #0056b3 100%);
-            border: none;
-            color: #fff;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-            cursor: pointer;
-        }
-
-        .mining-btn:disabled {
-            background: #30363d;
-            box-shadow: none;
-            color: #8b949e;
-        }
-
-        /* Ad Cards */
-        .ad-card {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #30363d;
-        }
-
-        .btn-action {
-            background: var(--btn-green);
+        .btn {
+            background-color: #0088cc;
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 12px;
             cursor: pointer;
-        }
-
-        /* Bottom Navigation */
-        .nav-bar {
-            display: flex;
-            background: var(--card-bg);
-            border-top: 1px solid #30363d;
-            position: fixed;
-            bottom: 0;
+            margin-top: 15px;
             width: 100%;
         }
-
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            padding: 12px 0;
-            font-size: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
+        .btn-ad {
+            background-color: #28a745;
         }
-
-        .nav-item.active {
-            color: var(--accent-color);
-            font-weight: bold;
+        .btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-
-    <!-- Header Balance -->
-    <div class="header">
-        <div>Novexa Coins Balance</div>
-        <div class="balance-card" id="user-balance">0</div>
-    </div>
-
-    <!-- TAB 1: HOME -->
-    <div id="tab-home" class="tab-content active">
-        <h3>স্বাগতম Novexa Mine-এ</h3>
-        <p>দৈনিক কাজ সম্পূর্ণ করুন এবং প্রতি ২ ঘণ্টায় মাইনিং ক্লেইম করে টোকেন আয় করুন।</p>
-        <div class="ad-card">
-            <div>
-                <strong>দৈনিক রিওয়ার্ড</strong>
-                <br><small>+৫০ টোকেন</small>
-            </div>
-            <button class="btn-action" onclick="claimDailyBonus()">ক্লেইম</button>
-        </div>
-    </div>
-
-    <!-- TAB 2: MINING -->
-    <div id="tab-mining" class="tab-content">
-        <div class="mining-container">
-            <button id="mine-btn" class="mining-btn" onclick="startMining()">মাইনিং শুরু করুন<br>(৮৫ টোকেন)</button>
-            <p id="timer-display" style="margin-top: 15px; color: var(--text-secondary);"></p>
-        </div>
-    </div>
-
-    <!-- TAB 3: EARN (ADS) -->
-    <div id="tab-earn" class="tab-content">
-        <h3>বিজ্ঞাপন দেখে আয় করুন</h3>
+    <div class="container">
+        <h2>⛏️ Novexa Mine</h2>
+        <div class="coin-icon">🪙</div>
+        <div class="balance"><span id="balance">0</span> NOVEXA</div>
         
-        <div class="ad-card">
-            <div>
-                <strong>লং ভিডিও অ্যাড (Adsgram)</strong>
-                <br><small>+২০ টোকেন</small>
-            </div>
-            <button class="btn-action" onclick="showAdsgramAd()">দেখুন</button>
-        </div>
-
-        <div class="ad-card">
-            <div>
-                <strong>শর্ট অ্যাড (Monetag)</strong>
-                <br><small>+১৫ টোকেন</small>
-            </div>
-            <button class="btn-action" onclick="showMonetagAd()">দেখুন</button>
-        </div>
-
-        <div class="ad-card">
-            <div>
-                <strong>বাংলা অ্যাড (BengalAds)</strong>
-                <br><small>+১৫ টোকেন</small>
-            </div>
-            <button class="btn-action" onclick="showBengalAd()">দেখুন</button>
-        </div>
-    </div>
-
-    <!-- TAB 4: INVITE -->
-    <div id="tab-invite" class="tab-content">
-        <h3>বন্ধু ইনভাইট করুন</h3>
-        <p>যেকোনো উইথড্র করার জন্য অন্তত ৩টি রেফারেল বাধ্যতামূলক।</p>
-        <div class="ad-card">
-            <div>
-                <span>আপনার ইনভাইট লিংক:</span>
-                <br><small id="ref-link">https://t.me/NovexaMineBot?start=12345</small>
-            </div>
-            <button class="btn-action" onclick="copyRefLink()">কপি</button>
-        </div>
-    </div>
-
-    <!-- TAB 5: WALLET -->
-    <div id="tab-wallet" class="tab-content">
-        <h3>উইথড্র মেথড</h3>
-        <p>রেট: ১,০০০ Coins = ০.০৩ USDT</p>
-        <p>মিনিমাম উইথড্র: ১০,০০০ Coins (৩টি রেফার প্রয়োজন)</p>
-        <button class="btn-action" style="width: 100%; padding: 12px;" onclick="requestWithdrawal()">উইথড্র রিকোয়েস্ট (USDT/TON)</button>
-    </div>
-
-    <!-- Bottom Navigation Bar -->
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="switchTab('home')">হোম</div>
-        <div class="nav-item" onclick="switchTab('mining')">মাইনিং</div>
-        <div class="nav-item" onclick="switchTab('earn')">আর্ন</div>
-        <div class="nav-item" onclick="switchTab('invite')">ইনভাইট</div>
-        <div class="nav-item" onclick="switchTab('wallet')">ওয়ালেট</div>
+        <p id="status">মাইনিং শুরু করতে নিচে ক্লিক করুন</p>
+        <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
+        
+        <hr style="margin: 25px 0; border-color: #333;">
+        
+        <h3>📺 Watch Ads to Earn Bonus</h3>
+        <!-- Monetag Ad Button -->
+        <button class="btn btn-ad" onclick="showMonetagAd()">Watch Ad (+100 NOVEXA)</button>
     </div>
 
     <script>
-        // Telegram WebApp Initialization
-        const tg = window.Telegram.WebApp;
+        let tg = window.Telegram.WebApp;
         tg.expand();
 
         let balance = 0;
-        let isMining = false;
 
-        // Navigation Switcher
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        // Adsgram Integration
-        const AdController = window.Adsgram ? window.Adsgram.init({ blockId: "YOUR_ADSGRAM_BLOCK_ID" }) : null;
-
-        function showAdsgramAd() {
-            if (AdController) {
-                AdController.show().then((result) => {
-                    // Ad completed successfully
-                    addTokens(20);
-                    alert("২০ টোকেন যোগ হয়েছে!");
-                }).catch((result) => {
-                    alert("বিজ্ঞাপনটি পুরো দেখা হয়নি।");
-                });
-            } else {
-                alert("অ্যাড লোড হচ্ছে, কিছুক্ষণ পর চেষ্টা করুন।");
-            }
-        }
-
-        function showMonetagAd() {
-            // Monetag Interstitial Handler
-            addTokens(15);
-            alert("১৫ টোকেন যোগ হয়েছে!");
-        }
-
-        function showBengalAd() {
-            // BengalAds Native Banner Handler
-            addTokens(15);
-            alert("১৫ টোকেন যোগ হয়েছে!");
-        }
-
-        // Mining Timer Logic
-        function startMining() {
-            if (!isMining) {
-                isMining = true;
-                document.getElementById('mine-btn').disabled = true;
-                addTokens(85);
-                alert("মাইনিং ক্লেইম সম্পন্ন হয়েছে! ৮৫ টোকেন যোগ হলো।");
-                
-                // 2 Hours cooldown (7200 seconds)
-                let timeLeft = 7200;
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    let hours = Math.floor(timeLeft / 3600);
-                    let minutes = Math.floor((timeLeft % 3600) / 60);
-                    let seconds = timeLeft % 60;
-                    document.getElementById('timer-display').innerText = `পরবর্তী ক্লেইম: ${hours}ঘণ্টা ${minutes}মি ${seconds}সে`;
-
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        isMining = false;
-                        document.getElementById('mine-btn').disabled = false;
-                        document.getElementById('timer-display').innerText = "";
-                    }
-                }, 1000);
-            }
-        }
-
-        function addTokens(amount) {
+        function updateBalance(amount) {
             balance += amount;
-            document.getElementById('user-balance').innerText = balance;
+            document.getElementById('balance').innerText = balance;
         }
 
-        function copyRefLink() {
-            navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
-            alert("ইনভাইট লিংক কপি হয়েছে!");
+        function startMining() {
+            document.getElementById('status').innerText = "⛏️ মাইনিং চলছে...";
+            document.getElementById('mineBtn').disabled = true;
+            
+            setTimeout(() => {
+                updateBalance(500);
+                document.getElementById('status').innerText = "✅ মাইনিং শেষ! ৫০০ NOVEXA যোগ হয়েছে।";
+                document.getElementById('mineBtn').disabled = false;
+            }, 5000); 
         }
 
-        function requestWithdrawal() {
-            alert("উইথড্র করার জন্য অন্তত ৩টি রেফারেল আবশ্যক।");
+        // Monetag Direct Link Integration
+        function showMonetagAd() {
+            let monetagLink = "https://omg10.com/4/11858728"; 
+            window.open(monetagLink, '_blank');
+            updateBalance(100);
         }
     </script>
 </body>
