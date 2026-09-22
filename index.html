@@ -232,31 +232,27 @@
             }
         }
 
-        setInterval(checkMiningTimer, 10000);
-        loadData();
-    </script<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+       setInterval(checkMiningTimer, 10000);
+    loadData();
+  </script>
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBEfTzbuf_OIQC1NcQqmQg_0QBIpbvfgDU",
-    authDomain: "novexa-mine.firebaseapp.com",
-    projectId: "novexa-mine",
-    storageBucket: "novexa-mine.firebasestorage.app",
-    messagingSenderId: "549658268581",
-    appId: "1:549658268581:web:72e70f3ab830e65e448e4c",
-    measurementId: "G-6SRJEMSY8M"
-  };
+  <!-- Firebase Configuration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBEfTzbuf_OIQC1NcQqmQg_0QBIpbvfgDU",
+      authDomain: "novexa-mine.firebaseapp.com",
+      projectId: "novexa-mine",
+      storageBucket: "novexa-mine.firebasestorage.app",
+      messagingSenderId: "549658268581",
+      appId: "1:549658268581:web:72e70f3ab830e65e448e4c",
+      measurementId: "G-6SRJEMSY8M"
+    };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
 </body>
 </html>
