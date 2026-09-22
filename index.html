@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
+    <script src='//libtl.com/sdk.js' data-zone='11859054' data-sdk='show_11859054'></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Nautilus Mine - Official Mini App</title>
@@ -889,6 +890,59 @@
         // Initialize state
         updateUI();
         updateMiningTimer();
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let balance = parseInt(localStorage.getItem('nautilus_bal')) || 297;
+
+        function updateUI() {
+            document.getElementById('mainBal').innerText = balance;
+            document.getElementById('topBal').innerText = balance;
+            document.getElementById('walletBal').innerText = balance;
+            localStorage.setItem('nautilus_bal', balance);
+        }
+
+        function addCoins(amount) {
+            balance += amount;
+            updateUI();
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (el) el.classList.add('active');
+        }
+
+        // মনিট্যাগের ইন-অ্যাপ অ্যাড ওপেনার
+        function watchInstantAd() {
+            if (typeof show_11859054 === 'function') {
+                show_11859054().then(() => {
+                    addCoins(20);
+                }).catch((err) => {
+                    if (tg && tg.openLink) {
+                        tg.openLink("https://omg10.com/4/11858728");
+                    }
+                });
+            } else {
+                if (tg && tg.openLink) {
+                    tg.openLink("https://omg10.com/4/11858728");
+                }
+            }
+        }
+
+        function claimDaily() {
+            addCoins(16);
+            alert("Daily Bonus Claimed! +16 Nautilus Coins");
+        }
+
+        function copyReferral() {
+            let link = "https://t.me/NautilusMineBot/mine?startapp=ref";
+            navigator.clipboard.writeText(link);
+            alert("Invite link copied to clipboard!");
+        }
+
+        updateUI();
     </script>
 </body>
 </html>
