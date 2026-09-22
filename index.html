@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Novexa Mine</title>
+    <title>Nautilus Mine</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #0d0f17;
-            --card-bg: #1a1d2a;
-            --accent-gold: #ffc107;
-            --text-main: #ffffff;
-            --text-sub: #9ea3b5;
-            --btn-grad: linear-gradient(135deg, #0088cc, #005588);
-            --btn-green: linear-gradient(135deg, #28a745, #1e7e34);
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary-teal: #14b8a6;
+            --teal-light: #e6f7f5;
+            --teal-gradient: linear-gradient(135deg, #2dd4bf, #0d9488);
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --border-color: #e2e8f0;
         }
 
         * {
@@ -29,247 +30,544 @@
 
         body {
             background-color: var(--bg-color);
-            color: var(--text-main);
+            color: var(--text-dark);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             min-height: 100vh;
-            padding-bottom: 75px;
+            padding-bottom: 80px;
         }
 
-        /* Top Header */
-        .header {
+        /* Header */
+        .top-header {
+            background: #fff;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px 20px;
-            background: var(--card-bg);
-            border-bottom: 1px solid #2a2f45;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .user-box {
+        .brand-info {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .avatar {
-            width: 38px;
-            height: 38px;
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--teal-light);
             border-radius: 50%;
-            background: var(--accent-gold);
-            color: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-size: 18px;
         }
 
-        /* Balance Display */
-        .balance-section {
-            text-align: center;
-            margin-top: 25px;
+        .brand-text h4 {
+            font-size: 14px;
+            color: var(--text-dark);
         }
 
-        .balance-title {
-            font-size: 13px;
-            color: var(--text-sub);
-            letter-spacing: 1px;
+        .brand-text p {
+            font-size: 10px;
+            color: var(--text-gray);
+            letter-spacing: 0.5px;
         }
 
-        .balance-amount {
-            font-size: 42px;
-            font-weight: 800;
-            color: var(--accent-gold);
+        /* Stats Bar */
+        .stats-bar {
+            background: #fff;
+            padding: 8px 16px;
+            font-size: 11px;
+            color: var(--text-gray);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 5px;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* Coin Tap Button */
-        .tap-area {
-            display: flex;
-            justify-content: center;
-            margin: 25px 0;
-        }
-
-        .coin-btn {
-            width: 190px;
-            height: 190px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #ffe066 0%, #d49500 100%);
-            box-shadow: 0 0 35px rgba(255, 193, 7, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 85px;
-            cursor: pointer;
-            transition: transform 0.08s ease;
-            border: 4px solid #fff3c4;
-        }
-
-        .coin-btn:active {
-            transform: scale(0.92);
-        }
-
-        /* Action Cards */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 18px;
-            margin: 0 20px;
-            border: 1px solid #2a2f45;
-            text-align: center;
-        }
-
-        .action-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            background: var(--btn-grad);
-            color: #fff;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
-        }
-
-        .action-btn:disabled {
-            background: #2a2f45;
-            color: var(--text-sub);
-            box-shadow: none;
-        }
-
-        .ad-btn {
-            background: var(--btn-green);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-
-        /* Tab Content */
+        /* Main Content Container */
         .tab-content {
             display: none;
-            padding: 20px;
+            padding: 16px;
             flex-direction: column;
-            align-items: center;
+            gap: 16px;
         }
 
         .tab-content.active {
             display: flex;
         }
 
-        /* Navigation Bar */
-        .navbar {
+        /* Teal Banner Card */
+        .banner-card {
+            background: var(--teal-gradient);
+            border-radius: 20px;
+            padding: 20px;
+            color: #fff;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
+        }
+
+        .banner-title {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .banner-balance {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 4px 0;
+        }
+
+        .banner-sub {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .level-pill {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* White Cards */
+        .white-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        /* Mining Graphic Display */
+        .mining-display {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .shell-icon {
+            font-size: 80px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 10px 15px rgba(20, 184, 166, 0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .timer-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: 1px;
+            margin: 10px 0;
+        }
+
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-teal {
+            width: 100%;
+            background: var(--teal-gradient);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-teal:active {
+            transform: scale(0.98);
+        }
+
+        /* Daily Bonus Grid */
+        .streak-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin: 12px 0;
+        }
+
+        .streak-day {
+            background: var(--teal-light);
+            border-radius: 8px;
+            padding: 8px 2px;
+            text-align: center;
+            font-size: 10px;
+            color: var(--primary-teal);
+            font-weight: bold;
+        }
+
+        .streak-day.active {
+            background: var(--primary-teal);
+            color: #fff;
+        }
+
+        /* Task & Ad Item */
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-item:last-child { border-bottom: none; }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--teal-light);
+            border-radius: 10px;
+            color: var(--primary-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .btn-sm {
+            background: var(--primary-teal);
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Leaderboard Items */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Navbar Bottom */
+        .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             height: 65px;
-            background: var(--card-bg);
-            border-top: 1px solid #2a2f45;
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-around;
             align-items: center;
+            z-index: 1000;
         }
 
-        .nav-item {
+        .nav-link {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            color: var(--text-sub);
-            font-size: 11px;
+            gap: 3px;
+            color: var(--text-gray);
+            font-size: 10px;
+            text-decoration: none;
             cursor: pointer;
-            width: 25%;
+            width: 20%;
         }
 
-        .nav-item i {
-            font-size: 20px;
+        .nav-link i {
+            font-size: 18px;
         }
 
-        .nav-item.active {
-            color: var(--accent-gold);
+        .nav-link.active {
+            color: var(--primary-teal);
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Bar -->
-    <div class="header">
-        <div class="user-box">
-            <div class="avatar" id="avatar">N</div>
-            <span id="username" style="font-weight: 600;">Miner</span>
+    <!-- Header -->
+    <div class="top-header">
+        <div class="brand-info">
+            <div class="brand-icon">🐚</div>
+            <div class="brand-text">
+                <h4>Nautilus Mine</h4>
+                <p>STARLIGHT PROTOCOL • SEASON 1</p>
+            </div>
         </div>
-        <div style="color: var(--accent-gold); font-weight: 600; font-size: 14px;">
-            ⚡ NOVEXA VIP
+        <div style="background: #fef3c7; color: #d97706; padding: 6px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+            🐣
         </div>
     </div>
 
-    <!-- HOME TAB -->
-    <div id="home-tab" class="tab-content active" style="width: 100%;">
-        <div class="balance-section">
-            <div class="balance-title">TOTAL BALANCE</div>
-            <div class="balance-amount">
-                🪙 <span id="balance">0</span>
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <span>Balance: <b id="topBal" style="color: var(--primary-teal);">297</b> Nautilus</span>
+        <span>Level: <b style="color: var(--primary-teal);">Lv.3 Refined</b></span>
+    </div>
+
+    <!-- 1. HOME TAB -->
+    <div id="home-tab" class="tab-content active">
+        <!-- Banner -->
+        <div class="banner-card">
+            <div class="banner-title">• Opu</div>
+            <div class="banner-balance"><span id="mainBal">297</span>.00</div>
+            <div class="banner-sub">Nautilus Coins ≈ $0.01 USDT</div>
+            <div class="level-pill">
+                <span style="font-size: 16px;">3</span><br>
+                <span style="font-size: 9px; opacity: 0.8;">Lv.3</span>
             </div>
         </div>
 
-        <div class="tap-area">
-            <div class="coin-btn" onclick="tapCoin()">⛏️</div>
+        <!-- Mining Display -->
+        <div class="white-card mining-display">
+            <div class="status-tag">
+                <span style="height: 6px; width: 6px; background: #d97706; border-radius: 50%;"></span> MINING IN PROGRESS
+            </div>
+            <div class="shell-icon">🐚</div>
+            <div style="font-size: 12px; color: var(--primary-teal); font-weight: bold;">LV.3 Refined</div>
+            <div style="font-size: 10px; color: var(--text-gray); margin-top: 10px;">NEXT YIELD IN</div>
+            <div class="timer-text" id="homeTimer">00:48:16</div>
+            <button class="btn-teal" onclick="startMining()">⚡ Mining Active...</button>
         </div>
 
-        <div class="card" style="width: 85%;">
-            <div style="font-size: 13px; color: var(--text-sub);">MINING SESSION (4 HOURS)</div>
-            <div id="timer" style="font-size: 22px; font-weight: 700; margin: 8px 0;">Ready</div>
-            <button id="mineBtn" class="action-btn" onclick="startMining()">Start Mining</button>
+        <!-- Daily Bonus -->
+        <div class="white-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 14px;">Daily Bonus</h4>
+                    <p style="font-size: 11px; color: var(--text-gray);">Keep your streak alive for rewards</p>
+                </div>
+                <div style="background: #fff7ed; color: #ea580c; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold;">
+                    🔥 Day 4
+                </div>
+            </div>
+
+            <div class="streak-grid">
+                <div class="streak-day active">✓ D1</div>
+                <div class="streak-day active">✓ D2</div>
+                <div class="streak-day active">✓ D3</div>
+                <div class="streak-day active">✓ D4</div>
+                <div class="streak-day" style="border: 1px solid var(--primary-teal);">⭐ D5</div>
+                <div class="streak-day">D6</div>
+                <div class="streak-day">D7</div>
+            </div>
+
+            <button class="btn-teal" style="margin-top: 8px;" onclick="claimDaily()">🎁 Claim Daily Bonus (+16)</button>
         </div>
     </div>
 
-    <!-- TASKS TAB -->
-    <div id="tasks-tab" class="tab-content" style="width: 100%;">
-        <h3 style="margin-bottom: 15px;">Earn Extra Coins</h3>
-        <div class="card" style="width: 85%; margin-bottom: 15px;">
-            <h4>📺 Watch Monetag Sponsored Ad</h4>
-            <p style="font-size: 12px; color: var(--text-sub); margin: 5px 0 10px 0;">Earn +100 NOVEXA per view</p>
-            <button class="action-btn ad-btn" onclick="showMonetagAd()">Watch Ad (+100)</button>
+    <!-- 2. EARN TAB -->
+    <div id="earn-tab" class="tab-content">
+        <!-- Watch Ads Card -->
+        <div class="banner-card">
+            <h4>🎬 Watch & Earn</h4>
+            <p style="font-size: 11px; opacity: 0.9; margin-top: 2px;">Earn +20 Nautilus Coins per ad watched</p>
+            <div style="margin: 12px 0 6px 0; font-size: 11px;">Daily Progress: <b>10 / 12 ads</b></div>
+            <div style="height: 6px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                <div style="width: 80%; height: 100%; background: #fff;"></div>
+            </div>
+            <button class="btn-teal" style="background: #fff; color: var(--primary-teal);" onclick="watchMonetagAd()">
+                ▶ Watch Ad (+20 Nautilus Coins)
+            </button>
+        </div>
+
+        <!-- Ad Missions -->
+        <div class="white-card">
+            <h4 style="font-size: 14px; margin-bottom: 10px;">🎬 Ad Missions</h4>
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-icon">🚀</div>
+                    <div>
+                        <div style="font-size: 12px; font-weight: bold;">Play.Win.Withdraw USDT</div>
+                        <div style="font-size: 11px; color: var(--primary-teal);">+20 Coins</div>
+                    </div>
+                </div>
+                <button class="btn-sm" onclick="watchMonetagAd()">GO</button>
+            </div>
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-icon">🎮</div>
+                    <div>
+                        <div style="font-size: 12px; font-weight: bold;">Guess.Win.Withdraw USDT</div>
+                        <div style="font-size: 11px; color: var(--primary-teal);">+20 Coins</div>
+                    </div>
+                </div>
+                <button class="btn-sm" onclick="watchMonetagAd()">GO</button>
+            </div>
+        </div>
+
+        <!-- Telegram Missions -->
+        <div class="white-card">
+            <h4 style="font-size: 14px; margin-bottom: 10px;">✈️ Complete Tasks</h4>
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-icon">📢</div>
+                    <div>
+                        <div style="font-size: 12px; font-weight: bold;">Bsc Samurai</div>
+                        <div style="font-size: 11px; color: var(--text-gray);">+10 Nautilus Coins</div>
+                    </div>
+                </div>
+                <span style="color: var(--primary-teal); font-weight: bold;">✓</span>
+            </div>
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-icon">💎</div>
+                    <div>
+                        <div style="font-size: 12px; font-weight: bold;">Crypto Binaca</div>
+                        <div style="font-size: 11px; color: var(--text-gray);">+10 Nautilus Coins</div>
+                    </div>
+                </div>
+                <span style="color: var(--primary-teal); font-weight: bold;">✓</span>
+            </div>
         </div>
     </div>
 
-    <!-- REFER TAB -->
-    <div id="refer-tab" class="tab-content" style="width: 100%;">
-        <h3>Invite Friends</h3>
-        <p style="color: var(--text-sub); text-align: center; margin: 10px 0 20px 0; font-size: 14px;">
-            Get 500 NOVEXA for each friend you invite.
-        </p>
-        <button class="action-btn" onclick="shareRefLink()">Copy Invite Link</button>
+    <!-- 3. MINING TAB -->
+    <div id="mining-tab" class="tab-content">
+        <div class="white-card mining-display">
+            <div class="shell-icon">🐚</div>
+            <h3>LV.3 Refined</h3>
+            <div style="display: flex; justify-content: space-around; margin: 15px 0; font-size: 12px;">
+                <div>LEVEL<br><b style="color: var(--primary-teal);">Lv.3</b></div>
+                <div>MULTIPLIER<br><b style="color: var(--primary-teal);">x1.5</b></div>
+                <div>PROGRESS<br><b style="color: var(--primary-teal);">60%</b></div>
+            </div>
+            <div class="timer-text" id="miningTabTimer">00:47:37</div>
+            <button class="btn-teal">⚡ Mining Active...</button>
+        </div>
+
+        <div class="white-card">
+            <h4>Nautilus Evolution</h4>
+            <p style="font-size: 11px; color: var(--text-gray); margin-bottom: 12px;">Upgrade your miner level</p>
+            <button class="btn-teal" style="opacity: 0.7;">🔒 Need 3,703 More Nautilus</button>
+        </div>
     </div>
 
-    <!-- WALLET TAB -->
-    <div id="wallet-tab" class="tab-content" style="width: 100%;">
-        <h3>TON Wallet</h3>
-        <p style="color: var(--text-sub); text-align: center; margin-top: 15px; font-size: 14px;">
-            Wallet connection will be enabled soon.
-        </p>
+    <!-- 4. INVITE TAB -->
+    <div id="invite-tab" class="tab-content">
+        <div class="banner-card">
+            <h4>Your Network</h4>
+            <p style="font-size: 11px; margin: 4px 0 12px 0;">Earn +100 Nautilus Coins per recruit • 5% lifetime commission</p>
+            <div style="display: flex; gap: 10px; text-align: center;">
+                <div style="flex:1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 10px;">
+                    <span style="font-size: 10px;">RECRUITED</span><br><b>4</b>
+                </div>
+                <div style="flex:1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 10px;">
+                    <span style="font-size: 10px;">COINS EARNED</span><br><b>765</b>
+                </div>
+            </div>
+            <button class="btn-teal" style="margin-top: 12px; background: #fff; color: var(--primary-teal);" onclick="copyReferral()">
+                ✈ Invite via Telegram
+            </button>
+        </div>
+
+        <div class="white-card">
+            <h4 style="font-size: 14px; margin-bottom: 10px;">Leaderboard</h4>
+            <div class="rank-item">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <b style="color: var(--primary-teal);">1</b>
+                    <div><b>Rahman islam</b><br><span style="font-size: 10px; color: var(--text-gray);">@Rahmanislamq</span></div>
+                </div>
+                <b style="color: var(--primary-teal);">1,968</b>
+            </div>
+            <div class="rank-item">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <b>2</b>
+                    <div><b>Casey Web3</b><br><span style="font-size: 10px; color: var(--text-gray);">@CaseyWeb3</span></div>
+                </div>
+                <b>1,346</b>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. WALLET TAB -->
+    <div id="wallet-tab" class="tab-content">
+        <div class="banner-card">
+            <div class="banner-title">• Vault Balance</div>
+            <div class="banner-balance"><span id="walletBal">297</span>.00</div>
+            <div class="banner-sub">Nautilus Coins ≈ $0.01 USDT</div>
+            <div style="margin-top: 15px; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 10px; font-size: 11px;">
+                🔒 Vault Sealed — Mine 703 more Nautilus Coins to unlock withdrawals.
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="white-card" style="flex: 1; text-align: center;">
+                <span style="font-size: 10px; color: var(--text-gray);">REFERRALS</span>
+                <h3 style="color: var(--primary-teal); margin-top: 4px;">4</h3>
+            </div>
+            <div class="white-card" style="flex: 1; text-align: center;">
+                <span style="font-size: 10px; color: var(--text-gray);">TOTAL MINED</span>
+                <h3 style="color: var(--primary-teal); margin-top: 4px;">15,023</h3>
+            </div>
+        </div>
+
+        <div class="white-card">
+            <h4>TRANSACTION HISTORY</h4>
+            <div class="task-item" style="margin-top: 8px;">
+                <div>
+                    <b>1,880 Nautilus Coins</b>
+                    <div style="font-size: 10px; color: var(--text-gray);">9/17/2026</div>
+                </div>
+                <span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: bold;">✓ APPROVED</span>
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="navbar">
-        <div class="nav-item active" onclick="switchTab('home-tab', this)">
-            <i class="fa-solid fa-house"></i>
+    <div class="bottom-nav">
+        <div class="nav-link active" onclick="switchTab('home-tab', this)">
+            <i class="fa-solid fa-border-all"></i>
             <span>Home</span>
         </div>
-        <div class="nav-item" onclick="switchTab('tasks-tab', this)">
-            <i class="fa-solid fa-list-check"></i>
-            <span>Tasks</span>
+        <div class="nav-link" onclick="switchTab('earn-tab', this)">
+            <i class="fa-solid fa-sparkles"></i>
+            <span>Earn</span>
         </div>
-        <div class="nav-item" onclick="switchTab('refer-tab', this)">
-            <i class="fa-solid fa-user-group"></i>
-            <span>Friends</span>
+        <div class="nav-link" onclick="switchTab('mining-tab', this)">
+            <i class="fa-solid fa-cube"></i>
+            <span>Mining</span>
         </div>
-        <div class="nav-item" onclick="switchTab('wallet-tab', this)">
+        <div class="nav-link" onclick="switchTab('invite-tab', this)">
+            <i class="fa-solid fa-diagram-project"></i>
+            <span>Invite</span>
+        </div>
+        <div class="nav-link" onclick="switchTab('wallet-tab', this)">
             <i class="fa-solid fa-wallet"></i>
             <span>Wallet</span>
         </div>
@@ -279,96 +577,50 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name || 'Miner';
-            document.getElementById('avatar').innerText = (tg.initDataUnsafe.user.first_name || 'N').charAt(0).toUpperCase();
+        let balance = parseInt(localStorage.getItem('nautilus_bal')) || 297;
+
+        function updateUI() {
+            document.getElementById('mainBal').innerText = balance;
+            document.getElementById('topBal').innerText = balance;
+            document.getElementById('walletBal').innerText = balance;
+            localStorage.setItem('nautilus_bal', balance);
         }
 
-        let balance = parseInt(localStorage.getItem('novexa_bal')) || 0;
-        let miningEnd = parseInt(localStorage.getItem('novexa_end')) || 0;
-
-        document.getElementById('balance').innerText = balance.toLocaleString();
-
-        function updateBal(amount) {
+        function addCoins(amount) {
             balance += amount;
-            document.getElementById('balance').innerText = balance.toLocaleString();
-            localStorage.setItem('novexa_bal', balance);
-        }
-
-        function tapCoin() {
-            updateBal(1);
+            updateUI();
         }
 
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             if (el) el.classList.add('active');
         }
 
-        function startMining() {
-            miningEnd = Date.now() + (4 * 60 * 60 * 1000);
-            localStorage.setItem('novexa_end', miningEnd);
-            checkMiningStatus();
-        }
-
-        function checkMiningStatus() {
-            const btn = document.getElementById('mineBtn');
-            const timer = document.getElementById('timer');
-
-            if (!miningEnd) return;
-
-            btn.disabled = true;
-
-            const interval = setInterval(() => {
-                const now = Date.now();
-                const diff = miningEnd - now;
-
-                if (diff <= 0) {
-                    clearInterval(interval);
-                    timer.innerText = "Completed!";
-                    btn.disabled = false;
-                    btn.innerText = "Claim 500 NOVEXA";
-                    btn.onclick = claimReward;
-                    localStorage.removeItem('novexa_end');
-                } else {
-                    let h = Math.floor(diff / (1000 * 60 * 60));
-                    let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    let s = Math.floor((diff % (1000 * 60)) / 1000);
-                    timer.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                    btn.innerText = "Mining Active...";
-                }
-            }, 1000);
-        }
-
-        function claimReward() {
-            updateBal(500);
-            document.getElementById('timer').innerText = "Ready";
-            const btn = document.getElementById('mineBtn');
-            btn.innerText = "Start Mining";
-            btn.onclick = startMining;
-        }
-
-        if (miningEnd && miningEnd > Date.now()) {
-            checkMiningStatus();
-        }
-
-        // TELEGRAM MONETAG AD OPENER (FIXED)
-        function showMonetagAd() {
+        // MONETAG AD WATCH FUNCTION
+        function watchMonetagAd() {
             let adLink = "https://omg10.com/4/11858728";
             if (tg.openLink) {
                 tg.openLink(adLink);
             } else {
                 window.open(adLink, '_blank');
             }
-            updateBal(100);
+            addCoins(20);
         }
 
-        function shareRefLink() {
-            let inviteLink = "https://t.me/NovexaMineBot?start=ref";
-            navigator.clipboard.writeText(inviteLink);
-            alert("Invite link copied!");
+        function claimDaily() {
+            addCoins(16);
+            alert("Daily Bonus Claimed! +16 Nautilus Coins");
         }
+
+        function copyReferral() {
+            let link = "https://t.me/NautilusMineBot/mine?startapp=ref";
+            navigator.clipboard.writeText(link);
+            alert("Invite link copied to clipboard!");
+        }
+
+        updateUI();
     </script>
 </body>
 </html>
