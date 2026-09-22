@@ -2,96 +2,441 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Novexa Mine</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
+        :root {
+            --bg-color: #0f1015;
+            --card-bg: #181920;
+            --accent-color: #f3ba2f;
+            --text-color: #ffffff;
+            --text-muted: #8a8d9b;
+            --btn-blue: #0088cc;
+            --btn-green: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid #272934;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Container Sections */
+        .tab-content {
+            display: none;
             padding: 20px;
+            flex-direction: column;
+            align-items: center;
         }
-        .container {
-            max-width: 400px;
-            margin: auto;
+
+        .tab-content.active {
+            display: flex;
         }
-        .coin-icon {
-            font-size: 80px;
+
+        /* Main Coin Section */
+        .balance-card {
+            text-align: center;
             margin: 20px 0;
         }
-        .balance {
-            font-size: 28px;
-            font-weight: bold;
-            color: #ffd700;
+
+        .balance-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
         }
-        .btn {
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 12px;
+
+        .balance-amount {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Mining Coin Animation Button */
+        .coin-wrapper {
+            position: relative;
+            margin: 30px 0;
             cursor: pointer;
-            margin-top: 15px;
+        }
+
+        .coin-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #f3ba2f 0%, #d49500 100%);
+            box-shadow: 0 0 30px rgba(243, 186, 47, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            transition: transform 0.1s ease;
+        }
+
+        .coin-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Timer and Action Button */
+        .mining-status-card {
             width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #272934;
+            margin-top: 10px;
         }
-        .btn-ad {
-            background-color: #28a745;
+
+        .timer-display {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 10px 0;
         }
-        .btn:disabled {
-            background-color: #555;
+
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: var(--btn-blue);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn:disabled {
+            background: #2a2d3d;
+            color: var(--text-muted);
             cursor: not-allowed;
+        }
+
+        /* Tasks & Ads */
+        .task-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #272934;
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .task-icon {
+            font-size: 24px;
+            color: var(--accent-color);
+        }
+
+        .task-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .task-reward {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .task-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--btn-green);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: var(--card-bg);
+            border-top: 1px solid #272934;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            width: 25%;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>⛏️ Novexa Mine</h2>
-        <div class="coin-icon">🪙</div>
-        <div class="balance"><span id="balance">0</span> NOVEXA</div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar">N</div>
+            <span id="user-name" style="font-weight: 600;">Miner</span>
+        </div>
+        <div style="color: var(--accent-color); font-weight: 600;">
+            <i class="fa-solid fa-bolt"></i> VIP
+        </div>
+    </div>
+
+    <!-- TAB 1: HOME / MINING -->
+    <div id="home-tab" class="tab-content active">
+        <div class="balance-card">
+            <div class="balance-title">TOTAL BALANCE</div>
+            <div class="balance-amount">
+                <i class="fa-solid fa-coins"></i>
+                <span id="balance">0</span>
+            </div>
+        </div>
+
+        <div class="coin-wrapper" onclick="tapCoin()">
+            <div class="coin-btn">⛏️</div>
+        </div>
+
+        <div class="mining-status-card">
+            <div style="font-size: 14px; color: var(--text-muted);">4-HOUR MINING CYCLE</div>
+            <div id="timer" class="timer-display">Ready</div>
+            <button id="mineBtn" class="action-btn" onclick="startMining()">Start Mining</button>
+        </div>
+    </div>
+
+    <!-- TAB 2: TASKS & ADS -->
+    <div id="tasks-tab" class="tab-content">
+        <h3 style="margin-bottom: 20px;">Earn Extra Rewards</h3>
         
-        <p id="status">মাইনিং শুরু করতে নিচে ক্লিক করুন</p>
-        <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
-        
-        <hr style="margin: 25px 0; border-color: #333;">
-        
-        <h3>📺 Watch Ads to Earn Bonus</h3>
-        <!-- Monetag Ad Button -->
-        <button class="btn btn-ad" onclick="showMonetagAd()">Watch Ad (+100 NOVEXA)</button>
+        <div class="task-card">
+            <div class="task-info">
+                <i class="fa-solid fa-rectangle-ad task-icon"></i>
+                <div>
+                    <div class="task-title">Watch Sponsored Ad</div>
+                    <div class="task-reward">+100 NOVEXA</div>
+                </div>
+            </div>
+            <button class="task-btn" onclick="showMonetagAd()">Watch</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-info">
+                <i class="fa-solid fa-users task-icon"></i>
+                <div>
+                    <div class="task-title">Invite Friends</div>
+                    <div class="task-reward">+500 NOVEXA per referral</div>
+                </div>
+            </div>
+            <button class="task-btn" style="background: var(--btn-blue);" onclick="switchTab('refer-tab')">Invite</button>
+        </div>
+    </div>
+
+    <!-- TAB 3: REFERRAL -->
+    <div id="refer-tab" class="tab-content">
+        <h3 style="margin-bottom: 10px;">Invite Friends</h3>
+        <p style="color: var(--text-muted); text-align: center; margin-bottom: 20px;">Share your link and earn 500 NOVEXA for every active friend!</p>
+        <button class="action-btn" onclick="shareRefLink()">Copy Invite Link</button>
+    </div>
+
+    <!-- TAB 4: WALLET -->
+    <div id="wallet-tab" class="tab-content">
+        <h3 style="margin-bottom: 15px;">Wallet Setup</h3>
+        <p style="color: var(--text-muted); text-align: center; margin-bottom: 20px;">Withdrawals will be unlocked after token listing.</p>
+        <div class="mining-status-card">
+            <i class="fa-solid fa-wallet" style="font-size: 40px; color: var(--accent-color); margin-bottom: 10px;"></i>
+            <div>TON Wallet Integration Coming Soon</div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="navbar">
+        <div class="nav-item active" onclick="switchTab('home-tab', this)">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tasks-tab', this)">
+            <i class="fa-solid fa-list-check"></i>
+            <span>Tasks</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('refer-tab', this)">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Frends</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('wallet-tab', this)">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallet</span>
+        </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let balance = 0;
-
-        function updateBalance(amount) {
-            balance += amount;
-            document.getElementById('balance').innerText = balance;
+        // Load user info from Telegram SDK
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name || 'Miner';
+            document.getElementById('user-avatar').innerText = (tg.initDataUnsafe.user.first_name || 'M').charAt(0).toUpperCase();
         }
 
-        function startMining() {
-            document.getElementById('status').innerText = "⛏️ মাইনিং চলছে...";
-            document.getElementById('mineBtn').disabled = true;
+        // Local Storage State
+        let balance = parseInt(localStorage.getItem('novexa_balance')) || 0;
+        let miningEndTime = parseInt(localStorage.getItem('novexa_mining_end')) || 0;
+        let timerInterval = null;
+
+        document.getElementById('balance').innerText = balance.toLocaleString();
+
+        // Switch Tabs
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             
-            setTimeout(() => {
-                updateBalance(500);
-                document.getElementById('status').innerText = "✅ মাইনিং শেষ! ৫০০ NOVEXA যোগ হয়েছে।";
-                document.getElementById('mineBtn').disabled = false;
-            }, 5000); 
+            document.getElementById(tabId).classList.add('active');
+            if(el) el.classList.add('active');
+        }
+
+        // Tap Animation/Bonus
+        function tapCoin() {
+            balance += 1;
+            updateBalance();
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').innerText = balance.toLocaleString();
+            localStorage.setItem('novexa_balance', balance);
+        }
+
+        // 4 Hours Mining Timer Logic
+        function startMining() {
+            const fourHoursInMs = 4 * 60 * 60 * 1000;
+            miningEndTime = Date.now() + fourHoursInMs;
+            localStorage.setItem('novexa_mining_end', miningEndTime);
+            runTimer();
+        }
+
+        function runTimer() {
+            const mineBtn = document.getElementById('mineBtn');
+            const timerDisplay = document.getElementById('timer');
+            
+            mineBtn.disabled = true;
+
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const remaining = miningEndTime - now;
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.innerText = "Mining Finished!";
+                    mineBtn.disabled = false;
+                    mineBtn.innerText = "Claim 500 NOVEXA";
+                    mineBtn.onclick = claimMiningReward;
+                    localStorage.removeItem('novexa_mining_end');
+                } else {
+                    let hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                    
+                    timerDisplay.innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    mineBtn.innerText = "Mining in Progress...";
+                }
+            }, 1000);
+        }
+
+        function claimMiningReward() {
+            balance += 500;
+            updateBalance();
+            document.getElementById('timer').innerText = "Ready";
+            const mineBtn = document.getElementById('mineBtn');
+            mineBtn.innerText = "Start Mining";
+            mineBtn.onclick = startMining;
+        }
+
+        // Check active mining session on page load
+        if (miningEndTime && miningEndTime > Date.now()) {
+            runTimer();
         }
 
         // Monetag Direct Link Integration
         function showMonetagAd() {
-            let monetagLink = "https://omg10.com/4/11858728"; 
+            let monetagLink = "https://omg10.com/4/11858728";
             window.open(monetagLink, '_blank');
-            updateBalance(100);
+            balance += 100;
+            updateBalance();
+        }
+
+        function shareRefLink() {
+            let botUsername = "NovexaMineBot";
+            let inviteLink = `https://t.me/${botUsername}?start=ref`;
+            navigator.clipboard.writeText(inviteLink);
+            alert("Invite link copied to clipboard!");
         }
     </script>
 </body>
