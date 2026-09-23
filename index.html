@@ -116,7 +116,7 @@
   }
 
 /* ad gap: dim + ignore taps on ad buttons while the cooldown runs */
-body.ad-cooldown #collectBtn, body.ad-cooldown #watchAdBtn, body.ad-cooldown #monetagBtn,
+body.ad-cooldown #collectBonusBtn, body.ad-cooldown #watchAdBtn, body.ad-cooldown #monetagBtn,
 body.ad-cooldown #telegramTaskList button{ pointer-events:none; opacity:.55; }
 
 </style>
@@ -145,6 +145,8 @@ body.ad-cooldown #telegramTaskList button{ pointer-events:none; opacity:.55; }
         <div class="label" id="mineStatusLabel">Loading…</div>
       </div>
       <button class="btn" id="collectBtn" disabled>Loading…</button>
+      <button class="btn secondary" id="collectBonusBtn" disabled style="margin-top:10px;">Loading…</button>
+      <div class="section-sub" style="margin:8px 0 0;text-align:center;">Collecting is free. Watching an ad is optional and gives a bonus.</div>
 
       <div class="card" style="margin-top:14px;">
         <div class="section-title">Daily Bonus</div>
@@ -157,7 +159,7 @@ body.ad-cooldown #telegramTaskList button{ pointer-events:none; opacity:.55; }
     <!-- EARN -->
     <section class="view" id="view-earn">
       <div class="section-title">Earn Novexa Coins</div>
-      <div class="section-sub">Watch ads or complete tasks. Daily limits keep the app sustainable.</div>
+      <div class="section-sub">Ads are optional — watch one to earn extra coins, or complete tasks. Daily limits keep the app sustainable.</div>
 
       <div class="card">
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:10px;">
@@ -179,7 +181,7 @@ body.ad-cooldown #telegramTaskList button{ pointer-events:none; opacity:.55; }
         </div>
       </div>
 
-      <div class="notice" id="requiredNotice" style="display:none;">Join the required channels below first — ads and mining unlock right after that.</div>
+      <div class="notice" id="requiredNotice" style="display:none;">Join the required channels below first — ads unlock right after that.</div>
 
       <div class="card">
         <div class="section-title" style="font-size:14px;">Join &amp; Earn (one-time)</div>
@@ -243,9 +245,12 @@ body.ad-cooldown #telegramTaskList button{ pointer-events:none; opacity:.55; }
       <div class="notice" id="withdrawNotice"></div>
       <div class="card">
         <div class="section-title">Request Withdrawal</div>
-        <label class="field-label">USDT wallet address (TRC20)</label>
-        <input type="text" id="walletAddress" placeholder="Paste your USDT (TRC20) address">
+        <label class="field-label">Network</label>
+        <select id="walletNetwork" style="width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:14px;background:#fff;margin-bottom:12px;"></select>
+        <label class="field-label" id="walletAddressLabel">USDT wallet address</label>
+        <input type="text" id="walletAddress" placeholder="Paste your USDT address">
         <button class="btn" id="withdrawBtn">Request Withdrawal</button>
+        <button class="btn secondary" id="payoutProofBtn" style="margin-top:10px;">📢 View Payout Proofs</button>
         <div class="section-sub" style="margin-top:10px;">Requests are reviewed and paid manually — usually within a few hours.</div>
       </div>
       <div class="card">
@@ -291,7 +296,7 @@ const CONFIG = {
   MONETAG_ZONE_ID: "11859054",     // Monetag Rewarded Interstitial zone
 
   // Opening ad: shown every time the app opens; user closes it to enter the app.
-  LAUNCH_AD_ENABLED: true,
+  LAUNCH_AD_ENABLED: false,        // OFF while Adsgram reviews the app. Set true to turn the opening ad back on.
   LAUNCH_AD_TIMEOUT_SEC: 10,       // if no ad appears by then, let the user in anyway
   LAUNCH_AD_COOLDOWN_MIN: 0,       // 0 = every open; e.g. 5 = at most once per 5 minutes
 
@@ -302,6 +307,19 @@ const CONFIG = {
   // User must keep a Monetag ad open at least this long, otherwise NO reward.
   // (Stops people closing the ad after 2 sec, which lowers your CPM.)
   MONETAG_MIN_WATCH_SEC: 10,
+
+  // Mining: Collect is FREE (no ad). Watching one ad is an optional bonus.
+  MINING_AD_MULTIPLIER: 2,         // 2 = watch an ad to get 2x the mining reward
+
+  // Public proof that users get paid (shown in Wallet tab; Adsgram asks for this)
+  // Withdrawal networks (users pick one). Add/remove a line to change the list.
+  // regex = basic address format check so people don't paste a wrong address.
+  WITHDRAW_NETWORKS: [
+    { id:"TRC20", label:"USDT (TRC20 · Tron)",       placeholder:"Starts with T…",  regex:/^T[1-9A-HJ-NP-Za-km-z]{33}$/ },
+    { id:"BEP20", label:"USDT (BEP20 · BNB Chain)",  placeholder:"Starts with 0x…", regex:/^0x[a-fA-F0-9]{40}$/ },
+  ],
+
+  PAYOUT_PROOF_LINK: "https://t.me/NovexaMinePayout",
 
   // Gap between ANY two ads (also blocks rapid double/triple taps).
   // Only one ad can run at a time; the next one is allowed AD_GAP_SEC after the previous ended.
@@ -718,7 +736,7 @@ function renderHome(){
       document.getElementById("mineReward").textContent = `+${lvl.reward}`;
       document.getElementById("mineStatusLabel").textContent = "Mining complete — ready to collect!";
       collectBtn.disabled = false;
-      collectBtn.textContent = `⛏️ Collect ${lvl.reward} Novexa Coins`;
+      collectBtn.textContent = `⛏️ Collect ${lvl.reward} Novexa Coins (free)`;
     } else {
       const msLeft = userDoc.mineReadyAt - now;
       const h = Math.floor(msLeft/3600000), m = Math.floor((msLeft%3600000)/60000);
@@ -727,6 +745,14 @@ function renderHome(){
       collectBtn.disabled = true;
       collectBtn.textContent = `Mining… ${h}h ${m}m left`;
     }
+  }
+  // optional bonus button (needs an ad)
+  const bonusBtn = document.getElementById("collectBonusBtn");
+  if (!bonusBtn.dataset.busy){
+    bonusBtn.disabled = !ready;
+    bonusBtn.textContent = ready
+      ? `▶ Optional: watch an ad for ${CONFIG.MINING_AD_MULTIPLIER}× (+${lvl.reward * CONFIG.MINING_AD_MULTIPLIER} NVX)`
+      : `${CONFIG.MINING_AD_MULTIPLIER}× bonus is available when mining is ready`;
   }
 
   // daily streak
@@ -745,22 +771,48 @@ function renderHome(){
   document.getElementById("claimBonusBtn").textContent = claimedToday ? "Already claimed today" : "Claim Daily Bonus";
 }
 
+// Free collect — no ad needed.
 document.getElementById("collectBtn").addEventListener("click", async function(){
   if (Date.now() < (userDoc.mineReadyAt||0)) return;
-  const btn = this;
-  btn.dataset.busy = "1"; btn.disabled = true;
-  btn.textContent = `Watching ads 1/${CONFIG.MULTI_AD_COUNT}…`;
+  const btn = this, bonusBtn = document.getElementById("collectBonusBtn");
+  if (btn.dataset.busy || bonusBtn.dataset.busy) return;
+  btn.dataset.busy = "1"; btn.disabled = true; bonusBtn.disabled = true;
+  btn.textContent = "Collecting…";
+  try{
+    const lvl = levelOf(userDoc.miningLevel || 1);
+    await ackOrTimeout(creditCoins(lvl.reward, {
+      totalMined: firebase.firestore.FieldValue.increment(lvl.reward),
+      mineReadyAt: Date.now() + 2*3600000
+    }));
+    toast(`+${lvl.reward} NVX collected!`);
+  } catch(e){
+    console.error(e);
+    toast("Could not collect — try again.");
+  } finally {
+    delete btn.dataset.busy;
+    render();
+  }
+});
+
+// Optional bonus — watch an ad, get MINING_AD_MULTIPLIER x the reward.
+document.getElementById("collectBonusBtn").addEventListener("click", async function(){
+  if (Date.now() < (userDoc.mineReadyAt||0)) return;
+  const btn = this, freeBtn = document.getElementById("collectBtn");
+  if (btn.dataset.busy || freeBtn.dataset.busy) return;
+  btn.dataset.busy = "1"; btn.disabled = true; freeBtn.disabled = true;
+  btn.textContent = "Loading ad…";
   try{
     await watchMultiAd(CONFIG.MULTI_AD_COUNT, (i,n)=>{ btn.textContent = `Watching ads ${i}/${n}…`; });
     const lvl = levelOf(userDoc.miningLevel || 1);
-    await creditCoins(lvl.reward, {
-      totalMined: firebase.firestore.FieldValue.increment(lvl.reward),
+    const total = lvl.reward * CONFIG.MINING_AD_MULTIPLIER;
+    await ackOrTimeout(creditCoins(total, {
+      totalMined: firebase.firestore.FieldValue.increment(total),
       mineReadyAt: Date.now() + 2*3600000
-    });
-    await registerAdWatched();
-    toast(`+${lvl.reward} NVX collected!`);
+    }));
+    toast(`+${total} NVX collected (bonus)!`);
+    ackOrTimeout(registerAdWatched()).catch(()=>{});
   } catch(e){
-    toast(monetagErrText(e, "Ad not completed — try again."));
+    toast(monetagErrText(e, "Ad not completed — no bonus. You can still collect for free."));
   } finally {
     delete btn.dataset.busy;
     render();
@@ -840,7 +892,7 @@ function renderEarn(){
   document.getElementById("requiredNotice").style.display = requiredTasksPending() ? "block" : "none";
   document.getElementById("multiAdNote").textContent = CONFIG.USE_ADSGRAM
     ? `Plays ${CONFIG.MULTI_AD_COUNT} ads back-to-back, then credits your reward.`
-    : "Watch the full ad to get your reward.";
+    : "Optional — watch the full ad to earn coins.";
   document.getElementById("totalAdsLabel").textContent = userDoc.totalAdsWatched || 0;
 }
 
@@ -1050,15 +1102,31 @@ function renderWallet(){
   document.getElementById("withdrawBtn").disabled = userDoc.balance < CONFIG.MIN_WITHDRAW_COINS;
 }
 
+// ---- network picker (TRC20 / BEP20 …) ----
+const netSelect = document.getElementById("walletNetwork");
+CONFIG.WITHDRAW_NETWORKS.forEach(n=>{
+  const o = document.createElement("option"); o.value = n.id; o.textContent = n.label; netSelect.appendChild(o);
+});
+function currentNetwork(){ return CONFIG.WITHDRAW_NETWORKS.find(n=>n.id === netSelect.value) || CONFIG.WITHDRAW_NETWORKS[0]; }
+function updateNetworkUI(){
+  const n = currentNetwork();
+  document.getElementById("walletAddressLabel").textContent = `${n.label} wallet address`;
+  document.getElementById("walletAddress").placeholder = `Paste your ${n.id} address — ${n.placeholder}`;
+}
+netSelect.addEventListener("change", updateNetworkUI);
+updateNetworkUI();
+
 document.getElementById("withdrawBtn").addEventListener("click", async ()=>{
   if (window.accountBlocked){ toast("This device is already linked to another account."); return; }
   const addr = document.getElementById("walletAddress").value.trim();
-  if (!addr){ toast("Enter your USDT (TRC20) address first."); return; }
+  const net = currentNetwork();
+  if (!addr){ toast(`Enter your USDT (${net.id}) address first.`); return; }
+  if (net.regex && !net.regex.test(addr)){ toast(`That doesn't look like a valid ${net.id} address.`); return; }
   if (userDoc.balance < CONFIG.MIN_WITHDRAW_COINS){ toast("Balance below minimum withdrawal."); return; }
   const amountCoins = userDoc.balance;
   const amountUsdt = coinsToUsdt(amountCoins);
   await db.collection("withdrawals").add({
-    userId, username: userName, walletAddress: addr,
+    userId, username: userName, walletAddress: addr, network: net.id,
     amountCoins, amountUsdt, status: "pending",
     requestedAt: firebase.firestore.FieldValue.serverTimestamp()
   });
@@ -1081,6 +1149,10 @@ async function loadTxHistory(){
   });
 }
 
+
+document.getElementById("payoutProofBtn").addEventListener("click", ()=>{
+  if (tg) tg.openTelegramLink(CONFIG.PAYOUT_PROOF_LINK); else window.open(CONFIG.PAYOUT_PROOF_LINK, "_blank");
+});
 
 /* =========================================================
    MAIN — render everything, tab navigation, start-up
