@@ -2,186 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Novexa Mine</title>
 
-<!-- Telegram WebApp SDK -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Adsgram SDK -->
-<script src="https://sad.adsgram.org/js/sad.min.js"></script>
-<!-- Firebase (compat build, simplest for a single-file app) -->
+<!-- FIXED: correct Adsgram domain is .ai not .org -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 
 <style>
   :root{
-    --bg:#f4fcfc;
-    --card-bg:#ffffff;
-    --text-main:#111827;
-    --text-muted:#6b7280;
-    --teal-1:#4ee2c1;
-    --teal-2:#2bb8a0;
+    --bg:#f4fcfc; --card-bg:#ffffff; --text-main:#111827; --text-muted:#6b7280;
+    --teal-1:#4ee2c1; --teal-2:#2bb8a0;
     --teal-grad:linear-gradient(135deg,var(--teal-1) 0%,var(--teal-2) 100%);
-    --accent:#1abc9c;
-    --border:#e5f4f1;
-    --danger:#e05656;
-    --radius-lg:20px;
-    --radius-md:14px;
-    --radius-sm:10px;
+    --accent:#1abc9c; --border:#e5f4f1;
+    --radius-lg:20px; --radius-md:14px; --radius-sm:10px;
   }
   *{box-sizing:border-box;}
-  html,body{
-    margin:0;padding:0;height:100%;
-    background:var(--bg);
-    color:var(--text-main);
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text-main);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color:transparent;}
+  #app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+    padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));}
+  header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));}
+  header h1{font-size:16px;margin:0;display:flex;align-items:center;gap:6px;}
+  header .sub{font-size:10.5px;color:var(--text-muted);margin-top:2px;}
+  main{padding:0 14px 16px;flex:1;}
+  .card{background:var(--card-bg);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);border:1px solid var(--border);}
+  .hero-card{background:var(--teal-grad);color:#fff;text-align:center;padding:28px 20px;}
+  .hero-card.big{padding:34px 20px;}
+  .hero-card .amount{font-size:36px;font-weight:700;margin:8px 0;}
+  .hero-card.big .amount{font-size:44px;}
+  .hero-card .label{font-size:13px;opacity:.92;}
+  .coin-icon{
+    width:64px;height:64px;border-radius:50%;margin:0 auto 6px;
+    background:radial-gradient(circle at 35% 30%, #ffffff 0%, #dff9f3 35%, var(--teal-2) 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:26px;color:var(--teal-2);
+    box-shadow:0 4px 14px rgba(0,0,0,.15), inset 0 0 0 3px rgba(255,255,255,.5);
+    font-family:Georgia,serif;
   }
-  #app{
-    max-width:520px;margin:0 auto;
-    min-height:100vh;
-    display:flex;flex-direction:column;
-    padding-bottom:78px;
-  }
-  header{
-    padding:16px 18px 10px;
-    display:flex;align-items:center;justify-content:space-between;
-  }
-  header h1{font-size:17px;margin:0;display:flex;align-items:center;gap:6px;}
-  header .sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
-  main{padding:0 16px 16px;flex:1;}
-  .card{
-    background:var(--card-bg);
-    border-radius:var(--radius-lg);
-    padding:22px;
-    margin-bottom:16px;
-    box-shadow:0 1px 2px rgba(0,0,0,.04);
-    border:1px solid var(--border);
-  }
-  .hero-card{
-    background:var(--teal-grad);
-    color:#fff;
-    text-align:center;
-  }
-  .hero-card .amount{font-size:34px;font-weight:700;margin:6px 0;}
-  .hero-card .label{font-size:13px;opacity:.9;}
-  .pill{
-    display:inline-block;padding:5px 12px;border-radius:999px;
-    background:rgba(0,0,0,.06);font-size:12px;font-weight:600;
-  }
+  .coin-icon.sm{width:26px;height:26px;font-size:12px;display:inline-flex;vertical-align:middle;}
+  .pill{display:inline-block;padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.06);font-size:12px;font-weight:600;}
   .pill.light{background:rgba(255,255,255,.22);color:#fff;}
-  .btn{
-    width:100%;border:none;border-radius:var(--radius-md);
-    padding:15px;font-size:15px;font-weight:600;
-    cursor:pointer;color:#fff;background:var(--teal-grad);
-    display:flex;align-items:center;justify-content:center;gap:8px;
-  }
+  .btn{width:100%;border:none;border-radius:var(--radius-md);padding:15px;font-size:15px;font-weight:600;
+    cursor:pointer;color:#fff;background:var(--teal-grad);display:flex;align-items:center;justify-content:center;gap:8px;}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
   .btn.secondary{background:#fff;color:var(--accent);border:1.5px solid var(--accent);}
   .section-title{font-size:16px;font-weight:700;margin:0 0 4px;}
-  .section-sub{font-size:12.5px;color:var(--text-muted);margin:0 0 14px;}
-  .task-item{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:12px 14px;background:var(--card-bg);
-    border:1px solid var(--border);border-radius:var(--radius-md);
-    margin-bottom:10px;
-  }
-  .task-item .t-name{font-weight:600;font-size:14px;}
-  .task-item .t-reward{font-size:12px;color:var(--accent);font-weight:600;}
-  .task-item button{
-    border:none;background:#e6f8f4;color:var(--accent);
-    padding:8px 14px;border-radius:999px;font-weight:600;font-size:12.5px;
-    white-space:nowrap;
-  }
+  .section-sub{font-size:12px;color:var(--text-muted);margin:0 0 12px;}
+  .task-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+    background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:9px;}
+  .task-item .t-name{font-weight:600;font-size:13.5px;}
+  .task-item .t-reward{font-size:11.5px;color:var(--accent);font-weight:600;}
+  .task-item button{border:none;background:#e6f8f4;color:var(--accent);padding:8px 14px;border-radius:999px;
+    font-weight:600;font-size:12px;white-space:nowrap;}
   .task-item button:disabled{opacity:.55;}
-  .streak-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0;}
-  .streak-day{
-    aspect-ratio:1;border-radius:10px;background:#f0f8f7;
-    display:flex;align-items:center;justify-content:center;
-    font-size:11px;color:var(--text-muted);font-weight:600;
-  }
+  .streak-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:12px 0;}
+  .streak-day{aspect-ratio:1;border-radius:9px;background:#f0f8f7;display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:var(--text-muted);font-weight:600;}
   .streak-day.done{background:var(--teal-grad);color:#fff;}
   .streak-day.today{outline:2px solid var(--accent);}
-  .notice{
-    font-size:12.5px;background:#fff7e6;color:#8a6100;
-    border:1px solid #ffe4a3;border-radius:var(--radius-sm);
-    padding:10px 12px;margin-bottom:14px;line-height:1.5;
-  }
-  .empty-state{
-    text-align:center;color:var(--text-muted);font-size:13px;
-    padding:24px 10px;
-  }
-  .leader-row{
-    display:flex;align-items:center;gap:10px;
-    padding:10px 4px;border-bottom:1px solid var(--border);
-  }
-  .leader-row .rank{
-    width:24px;height:24px;border-radius:50%;background:#f0f8f7;
-    display:flex;align-items:center;justify-content:center;
-    font-size:11px;font-weight:700;color:var(--accent);
-  }
-  .leader-row .name{flex:1;font-size:13.5px;font-weight:600;}
-  .leader-row .count{font-size:13px;color:var(--text-muted);}
-  input[type=text]{
-    width:100%;padding:13px 14px;border:1.5px solid var(--border);
-    border-radius:var(--radius-md);font-size:14px;margin-bottom:12px;
-    background:#fafffe;color:var(--text-main);
-  }
+  .notice{font-size:12px;background:#fff7e6;color:#8a6100;border:1px solid #ffe4a3;border-radius:var(--radius-sm);
+    padding:10px 12px;margin-bottom:12px;line-height:1.5;}
+  .empty-state{text-align:center;color:var(--text-muted);font-size:13px;padding:22px 10px;}
+  .leader-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);}
+  .leader-row .rank{width:22px;height:22px;border-radius:50%;background:#f0f8f7;display:flex;align-items:center;
+    justify-content:center;font-size:10.5px;font-weight:700;color:var(--accent);}
+  .leader-row .name{flex:1;font-size:13px;font-weight:600;}
+  .leader-row .count{font-size:12.5px;color:var(--text-muted);}
+  input[type=text]{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+    font-size:14px;margin-bottom:12px;background:#fafffe;color:var(--text-main);}
   .field-label{font-size:12px;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:600;}
-  .tx-item{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;
-  }
-  .status{font-size:10.5px;padding:3px 8px;border-radius:999px;font-weight:700;}
+  .tx-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .status{font-size:10px;padding:3px 8px;border-radius:999px;font-weight:700;}
   .status.pending{background:#fff3d6;color:#8a6100;}
   .status.paid{background:#dcf7ee;color:#0f7a5f;}
   .status.rejected{background:#fde2e2;color:#a02424;}
-  nav{
-    position:fixed;bottom:0;left:0;right:0;
-    max-width:520px;margin:0 auto;
-    background:#fff;border-top:1px solid var(--border);
-    display:flex;justify-content:space-around;
-    padding:9px 0 calc(9px + env(safe-area-inset-bottom,0px));
-  }
-  nav button{
-    background:none;border:none;display:flex;flex-direction:column;
-    align-items:center;gap:3px;color:var(--text-muted);font-size:10.5px;
-    font-weight:600;cursor:pointer;padding:4px 8px;
-  }
+  .level-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius-md);margin-bottom:8px;
+    border:1px solid var(--border);}
+  .level-row.current{border-color:var(--accent);background:#f0fbf8;}
+  .level-badge{width:34px;height:34px;border-radius:50%;background:#f0f8f7;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:13px;color:var(--accent);flex-shrink:0;}
+  .level-row.current .level-badge{background:var(--teal-grad);color:#fff;}
+  .level-info{flex:1;}
+  .level-info .l-name{font-weight:700;font-size:13.5px;}
+  .level-info .l-sub{font-size:11px;color:var(--text-muted);}
+  nav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;background:#fff;border-top:1px solid var(--border);
+    display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));}
+  nav button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+    color:var(--text-muted);font-size:10px;font-weight:600;cursor:pointer;padding:4px 6px;}
   nav button.active{color:var(--accent);}
-  .view{display:none;}
-  .view.active{display:block;}
-  .toast{
-    position:fixed;left:50%;bottom:100px;transform:translateX(-50%);
-    background:#111827;color:#fff;padding:11px 18px;border-radius:999px;
-    font-size:13px;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;
-  }
+  .view{display:none;} .view.active{display:block;}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#111827;color:#fff;
+    padding:11px 18px;border-radius:999px;font-size:13px;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;
+    max-width:88%;text-align:center;}
   .toast.show{opacity:1;}
+  @media (max-width:380px){
+    .hero-card .amount{font-size:30px;} .hero-card.big .amount{font-size:36px;}
+    .card{padding:16px;} header h1{font-size:15px;}
+  }
 </style>
 </head>
 <body>
 <div id="app">
-
   <header>
-    <div>
-      <h1>⛏️ Novexa Mine</h1>
-      <div class="sub" id="userLabel">connecting…</div>
-    </div>
+    <div><h1>⛏️ Novexa Mine</h1><div class="sub" id="userLabel">connecting…</div></div>
     <div class="pill" id="balancePill">0 NVX</div>
   </header>
 
   <main>
-
     <!-- HOME -->
     <section class="view active" id="view-home">
-      <div class="card hero-card">
-        <div class="label">Mining Hub</div>
+      <div class="card hero-card big">
+        <div class="coin-icon">N</div>
+        <div class="label">Mining Hub · Lv<span id="homeLevel">1</span></div>
         <div class="amount" id="mineReward">+0</div>
         <div class="label" id="mineStatusLabel">Loading…</div>
       </div>
       <button class="btn" id="collectBtn" disabled>Loading…</button>
 
-      <div class="card" style="margin-top:16px;">
+      <div class="card" style="margin-top:14px;">
         <div class="section-title">Daily Bonus</div>
         <div class="section-sub">Keep your streak alive for bigger rewards</div>
         <div class="streak-row" id="streakRow"></div>
@@ -192,35 +136,53 @@
     <!-- EARN -->
     <section class="view" id="view-earn">
       <div class="section-title">Earn Novexa Coins</div>
-      <div class="section-sub">Watch ads or complete tasks. Daily limits keep the app sustainable for everyone.</div>
+      <div class="section-sub">Watch ads or complete tasks. Daily limits keep the app sustainable.</div>
 
       <div class="card">
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:10px;">
           <span>Today: <b id="adsWatchedLabel" style="color:var(--text-main)">0</b> / <span id="adsMaxLabel">12</span> ads</span>
           <span id="adsEarnedLabel">+0 NVX</span>
         </div>
         <button class="btn" id="watchAdBtn">▶ Watch Ad (+<span id="adRewardLabel">20</span> NVX)</button>
+        <div class="section-sub" style="margin:8px 0 0;">Plays 3 ads back-to-back, then credits your reward.</div>
       </div>
 
       <div class="card">
         <div class="section-title" style="font-size:14px;">Ad Missions</div>
-        <div class="section-sub">Sponsored offers — open the link, then claim once it loads.</div>
+        <div class="section-sub">Sponsored offer — opens in Telegram's browser, then claim once it loads.</div>
         <div class="task-item">
-          <div>
-            <div class="t-name">Monetag Offer</div>
-            <div class="t-reward" id="monetagCountLabel">+15 NVX · 0/10 today</div>
-          </div>
+          <div><div class="t-name">Monetag Offer</div>
+            <div class="t-reward" id="monetagCountLabel">+15 NVX · 0/10 today</div></div>
           <button id="monetagBtn">Go</button>
         </div>
       </div>
 
       <div class="card">
         <div class="section-title" style="font-size:14px;">Telegram Tasks</div>
-        <div class="section-sub">React to the latest post in our channel. Repeatable every 2 hours.</div>
+        <div class="section-sub">Complete the task, then a short ad plays before your coins are credited.</div>
         <div id="telegramTaskList"></div>
       </div>
 
-      <div class="notice">Ad rewards are credited only after the ad or task actually completes — repeated claiming without engaging may get your account flagged.</div>
+      <div class="notice">Rewards are credited only after the ad or task actually completes — repeated claiming without engaging may get your account flagged by the ad network.</div>
+    </section>
+
+    <!-- MINING (levels) -->
+    <section class="view" id="view-mining">
+      <div class="card hero-card">
+        <div class="coin-icon">N</div>
+        <div class="label">Current Level</div>
+        <div class="amount" id="miningLevelName">Lv.1 Starter</div>
+        <div class="label">Reward per mine: <b id="miningLevelReward">50</b> NVX</div>
+      </div>
+      <div class="card" id="upgradeCard">
+        <div class="section-title" style="font-size:14px;">Upgrade</div>
+        <div class="section-sub" id="upgradeSub">Next level info loading…</div>
+        <button class="btn" id="upgradeBtn">Upgrade</button>
+      </div>
+      <div class="card">
+        <div class="section-title" style="font-size:14px;">All Levels</div>
+        <div id="levelList"></div>
+      </div>
     </section>
 
     <!-- INVITE -->
@@ -228,12 +190,12 @@
       <div class="card hero-card">
         <div class="label">Your Network</div>
         <div class="amount" id="referralCount">0</div>
-        <div class="label">friends invited · +<span id="referralBonusLabel">50</span> NVX each</div>
+        <div class="label">friends invited · +<span id="referralBonusLabel">50</span> NVX each + 5% lifetime commission</div>
       </div>
       <button class="btn" id="copyLinkBtn" style="margin-bottom:10px;">Copy Invite Link</button>
       <button class="btn secondary" id="shareLinkBtn">Share via Telegram</button>
-
-      <div class="card" style="margin-top:16px;">
+      <div class="notice">A friend counts as "invited" only after they watch 5 ads — this stops fake/empty accounts from being counted.</div>
+      <div class="card">
         <div class="section-title">Top Real Referrers</div>
         <div class="section-sub">Only actual users appear here — no seeded numbers.</div>
         <div id="leaderboardList"><div class="empty-state">Loading…</div></div>
@@ -248,40 +210,34 @@
         <div class="label">Novexa Coins</div>
         <div class="pill light" id="walletUsdt" style="margin-top:10px;">≈ $0.00 USDT</div>
       </div>
-
       <div class="notice" id="withdrawNotice"></div>
-
       <div class="card">
         <div class="section-title">Request Withdrawal</div>
         <label class="field-label">USDT wallet address (TRC20)</label>
         <input type="text" id="walletAddress" placeholder="Paste your USDT (TRC20) address">
         <button class="btn" id="withdrawBtn">Request Withdrawal</button>
-        <div class="section-sub" style="margin-top:10px;">Requests are reviewed and paid manually. This may take a few days — you'll see the status update below.</div>
+        <div class="section-sub" style="margin-top:10px;">Requests are reviewed and paid manually — usually within a few hours.</div>
       </div>
-
       <div class="card">
         <div class="section-title">Transaction History</div>
         <div id="txList"><div class="empty-state">No transactions yet</div></div>
       </div>
     </section>
-
   </main>
 
   <nav>
     <button class="nav-btn active" data-view="home"><span>🏠</span>Home</button>
     <button class="nav-btn" data-view="earn"><span>✨</span>Earn</button>
+    <button class="nav-btn" data-view="mining"><span>⛏️</span>Mining</button>
     <button class="nav-btn" data-view="invite"><span>🔗</span>Invite</button>
     <button class="nav-btn" data-view="wallet"><span>💼</span>Wallet</button>
   </nav>
-
   <div class="toast" id="toast"></div>
 </div>
 
 <script>
 /* =========================================================
-   CONFIG — edit these to change the app's economics.
-   Keep this section honest: whatever you put here is what
-   users will actually be able to earn and withdraw.
+   CONFIG
    ========================================================= */
 const CONFIG = {
   COINS_TO_USDT_PER_1000: 0.05,
@@ -289,25 +245,44 @@ const CONFIG = {
   COINS_PER_AD: 20,
   MAX_ADS_PER_DAY: 12,
   ADSGRAM_BLOCK_ID: "49257",
+  MULTI_AD_COUNT: 3, // shows this many ads back-to-back per "Watch Ad" click
 
   MONETAG_LINK: "https://omg10.com/4/11858728",
   MONETAG_COINS_PER_AD: 15,
-  MAX_MONETAG_PER_DAY: 10,          // no built-in "ad watched" confirmation exists for a Direct Link,
-  MONETAG_VERIFY_SECONDS: 15,       // so this cap + a short wait before "Claim" unlocks is the fraud guard
-
-  MINE_COOLDOWN_HOURS: 2,
-  MINE_REWARD: 50,
+  MAX_MONETAG_PER_DAY: 10,
+  MONETAG_VERIFY_SECONDS: 15,
 
   DAILY_BONUS_BASE: 10,
   DAILY_BONUS_STEP: 5,
   DAILY_BONUS_MAX_DAY: 7,
 
   REFERRAL_BONUS: 50,
+  REFERRAL_QUALIFY_ADS: 5,      // referred friend must watch this many ads to count
+  REFERRAL_COMMISSION_PCT: 0.05, // 5% lifetime commission, once qualified
 
+  // Admin-controlled. Raise this yourself in code if ad income drops —
+  // just make sure the current value is always what's shown in the app.
   MIN_WITHDRAW_COINS: 2000,
 
-  // Telegram engagement tasks. reward is honor-system (no Bot API reaction
-  // check without a server backend) — cooldownHours is the only real guard.
+  // ---- Mining levels: add/edit ANY line below to update the level system.
+  // Levels 6-10 costs are placeholder estimates following the same
+  // growing-gap pattern as your levels 2-5 — swap in real numbers once
+  // you send the screenshot.
+  LEVELS: [
+    { level:1,  name:"Starter",   upgradeCost:0,     reward:50  },
+    { level:2,  name:"Developed", upgradeCost:1000,  reward:65  },
+    { level:3,  name:"Refined",   upgradeCost:2000,  reward:80  },
+    { level:4,  name:"Polished",  upgradeCost:3500,  reward:100 },
+    { level:5,  name:"Advanced",  upgradeCost:5500,  reward:125 },
+    { level:6,  name:"Level 6",   upgradeCost:8000,  reward:150 },
+    { level:7,  name:"Level 7",   upgradeCost:11000, reward:180 },
+    { level:8,  name:"Level 8",   upgradeCost:14500, reward:215 },
+    { level:9,  name:"Level 9",   upgradeCost:18500, reward:250 },
+    { level:10, name:"Max Level", upgradeCost:23000, reward:300 },
+  ],
+
+  // ---- Telegram engagement tasks: add a new object here to add a new task.
+  // No other code needs to change — the UI and claim logic read this list.
   TELEGRAM_TASKS: [
     {
       id: "react_zero_invest",
@@ -317,6 +292,7 @@ const CONFIG = {
       reward: 20,
       cooldownHours: 2
     }
+    // { id:"new_task_id", label:"...", link:"https://t.me/...", reward:20, cooldownHours:2 },
   ],
 };
 
@@ -339,7 +315,6 @@ const db = firebase.firestore();
    ========================================================= */
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
-
 const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
 const userId = tgUser ? String(tgUser.id) : "guest_" + Math.random().toString(36).slice(2,10);
 const userName = tgUser ? (tgUser.username ? "@" + tgUser.username : tgUser.first_name) : "Guest";
@@ -357,48 +332,66 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
 let userDoc = null;
 const userRef = db.collection("users").doc(userId);
 function todayStr(){ return new Date().toISOString().slice(0,10); }
+function levelOf(n){ return CONFIG.LEVELS.find(l=>l.level===n) || CONFIG.LEVELS[0]; }
 
 async function ensureUser(){
   const snap = await userRef.get();
   if (!snap.exists){
-    const initial = {
-      telegramId: userId,
-      username: userName,
-      balance: 0,
-      totalMined: 0,
-      adsWatchedToday: 0,
-      lastAdDate: "",
-      monetagWatchedToday: 0,
-      lastMonetagDate: "",
-      dailyStreak: 0,
-      lastClaimDate: "",
+    await userRef.set({
+      telegramId: userId, username: userName,
+      balance: 0, totalMined: 0,
+      adsWatchedToday: 0, lastAdDate: "",
+      monetagWatchedToday: 0, lastMonetagDate: "",
+      totalAdsWatched: 0,
+      dailyStreak: 0, lastClaimDate: "",
       mineReadyAt: Date.now(),
+      miningLevel: 1,
       referredBy: referrerId,
+      referralQualified: false,
       referralCount: 0,
       taskClaims: {},
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await userRef.set(initial);
-    if (referrerId && referrerId !== userId){
-      const refRef = db.collection("users").doc(referrerId);
-      const refSnap = await refRef.get();
-      if (refSnap.exists){
-        await refRef.update({
-          balance: firebase.firestore.FieldValue.increment(CONFIG.REFERRAL_BONUS),
-          referralCount: firebase.firestore.FieldValue.increment(1)
-        });
-      }
-    }
+    });
   }
 }
 
 function toast(msg){
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
+  t.textContent = msg; t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"), 2200);
 }
 function coinsToUsdt(coins){ return (coins/1000)*CONFIG.COINS_TO_USDT_PER_1000; }
+
+// Central "give this user coins" helper — also handles referral commission.
+// NOTE: without a server backend this can't be made fully tamper-proof;
+// Firestore rules limit direct balance edits, but a determined user could
+// still alter client JS. Fine for a small manually-reviewed payout flow.
+async function creditCoins(amount, extraFields){
+  const fields = Object.assign({ balance: firebase.firestore.FieldValue.increment(amount) }, extraFields||{});
+  await userRef.update(fields);
+  if (userDoc && userDoc.referredBy && userDoc.referralQualified){
+    const commission = Math.round(amount * CONFIG.REFERRAL_COMMISSION_PCT);
+    if (commission > 0){
+      db.collection("users").doc(userDoc.referredBy).update({
+        balance: firebase.firestore.FieldValue.increment(commission)
+      }).catch(()=>{});
+    }
+  }
+}
+
+async function registerAdWatched(){
+  const wasQualified = userDoc.referralQualified;
+  const newTotal = (userDoc.totalAdsWatched||0) + 1;
+  const update = { totalAdsWatched: firebase.firestore.FieldValue.increment(1) };
+  if (!wasQualified && newTotal >= CONFIG.REFERRAL_QUALIFY_ADS && userDoc.referredBy){
+    update.referralQualified = true;
+    db.collection("users").doc(userDoc.referredBy).update({
+      balance: firebase.firestore.FieldValue.increment(CONFIG.REFERRAL_BONUS),
+      referralCount: firebase.firestore.FieldValue.increment(1)
+    }).catch(()=>{});
+  }
+  await userRef.update(update);
+}
 
 /* =========================================================
    RENDER
@@ -407,22 +400,27 @@ function render(){
   if (!userDoc) return;
   document.getElementById("balancePill").textContent = `${userDoc.balance.toFixed(0)} NVX`;
 
-  // mining
+  const lvl = levelOf(userDoc.miningLevel || 1);
+  document.getElementById("homeLevel").textContent = lvl.level;
+
+  // mining (home)
   const now = Date.now();
   const ready = now >= (userDoc.mineReadyAt || 0);
   const collectBtn = document.getElementById("collectBtn");
-  if (ready){
-    document.getElementById("mineReward").textContent = `+${CONFIG.MINE_REWARD}`;
-    document.getElementById("mineStatusLabel").textContent = "Mining complete — ready to collect!";
-    collectBtn.disabled = false;
-    collectBtn.textContent = `⛏️ Collect ${CONFIG.MINE_REWARD} Novexa Coins`;
-  } else {
-    const msLeft = userDoc.mineReadyAt - now;
-    const h = Math.floor(msLeft/3600000), m = Math.floor((msLeft%3600000)/60000);
-    document.getElementById("mineReward").textContent = "⏳";
-    document.getElementById("mineStatusLabel").textContent = `Mining in progress — ready in ${h}h ${m}m`;
-    collectBtn.disabled = true;
-    collectBtn.textContent = `Mining… ${h}h ${m}m left`;
+  if (!collectBtn.dataset.busy){
+    if (ready){
+      document.getElementById("mineReward").textContent = `+${lvl.reward}`;
+      document.getElementById("mineStatusLabel").textContent = "Mining complete — ready to collect!";
+      collectBtn.disabled = false;
+      collectBtn.textContent = `⛏️ Collect ${lvl.reward} Novexa Coins`;
+    } else {
+      const msLeft = userDoc.mineReadyAt - now;
+      const h = Math.floor(msLeft/3600000), m = Math.floor((msLeft%3600000)/60000);
+      document.getElementById("mineReward").textContent = "⏳";
+      document.getElementById("mineStatusLabel").textContent = `Mining in progress — ready in ${h}h ${m}m`;
+      collectBtn.disabled = true;
+      collectBtn.textContent = `Mining… ${h}h ${m}m left`;
+    }
   }
 
   // daily streak
@@ -440,37 +438,39 @@ function render(){
   document.getElementById("claimBonusBtn").disabled = claimedToday;
   document.getElementById("claimBonusBtn").textContent = claimedToday ? "Already claimed today" : "Claim Daily Bonus";
 
-  // adsgram
+  // earn: adsgram
   const adsToday = userDoc.lastAdDate === todayStr() ? userDoc.adsWatchedToday : 0;
   document.getElementById("adsWatchedLabel").textContent = adsToday;
   document.getElementById("adsMaxLabel").textContent = CONFIG.MAX_ADS_PER_DAY;
   document.getElementById("adsEarnedLabel").textContent = `+${adsToday * CONFIG.COINS_PER_AD} NVX`;
   document.getElementById("adRewardLabel").textContent = CONFIG.COINS_PER_AD;
   const watchBtn = document.getElementById("watchAdBtn");
-  watchBtn.disabled = adsToday >= CONFIG.MAX_ADS_PER_DAY;
-  watchBtn.textContent = adsToday >= CONFIG.MAX_ADS_PER_DAY
-    ? "Come back tomorrow for more ads"
-    : `▶ Watch Ad (+${CONFIG.COINS_PER_AD} NVX)`;
+  if (!watchBtn.dataset.busy){
+    watchBtn.disabled = adsToday >= CONFIG.MAX_ADS_PER_DAY;
+    watchBtn.textContent = adsToday >= CONFIG.MAX_ADS_PER_DAY
+      ? "Come back tomorrow for more ads"
+      : `▶ Watch Ad (+${CONFIG.COINS_PER_AD} NVX)`;
+  }
 
-  // monetag
+  // earn: monetag
   const monetagToday = userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0;
   document.getElementById("monetagCountLabel").textContent =
     `+${CONFIG.MONETAG_COINS_PER_AD} NVX · ${monetagToday}/${CONFIG.MAX_MONETAG_PER_DAY} today`;
   const monetagBtn = document.getElementById("monetagBtn");
-  if (!monetagBtn.dataset.armed){
+  if (!monetagBtn.dataset.armed && !monetagBtn.dataset.busy){
     monetagBtn.disabled = monetagToday >= CONFIG.MAX_MONETAG_PER_DAY;
     monetagBtn.textContent = "Go";
   }
 
-  // telegram tasks
+  // earn: telegram tasks
   const list = document.getElementById("telegramTaskList");
   list.innerHTML = "";
   CONFIG.TELEGRAM_TASKS.forEach(task=>{
     const lastClaim = (userDoc.taskClaims && userDoc.taskClaims[task.id]) || 0;
     const readyAt = lastClaim + task.cooldownHours*3600000;
+    const canClaim = now >= readyAt;
     const row = document.createElement("div");
     row.className = "task-item";
-    const canClaim = now >= readyAt;
     let btnLabel = "Go";
     if (!canClaim){
       const msLeft = readyAt-now;
@@ -482,6 +482,34 @@ function render(){
     list.appendChild(row);
   });
 
+  // mining tab
+  document.getElementById("miningLevelName").textContent = `Lv.${lvl.level} ${lvl.name}`;
+  document.getElementById("miningLevelReward").textContent = lvl.reward;
+  const next = levelOf(lvl.level+1);
+  const upgradeBtn = document.getElementById("upgradeBtn");
+  if (lvl.level >= 10){
+    document.getElementById("upgradeSub").textContent = "You're at the max level!";
+    upgradeBtn.disabled = true; upgradeBtn.textContent = "Max Level Reached";
+  } else {
+    document.getElementById("upgradeSub").textContent =
+      `Upgrade to Lv.${next.level} ${next.name} for ${next.upgradeCost} NVX (reward becomes +${next.reward}/mine)`;
+    upgradeBtn.disabled = userDoc.balance < next.upgradeCost;
+    upgradeBtn.textContent = userDoc.balance < next.upgradeCost
+      ? `Need ${next.upgradeCost - Math.floor(userDoc.balance)} more NVX`
+      : `Upgrade for ${next.upgradeCost} NVX`;
+  }
+  const levelList = document.getElementById("levelList");
+  levelList.innerHTML = "";
+  CONFIG.LEVELS.forEach(l=>{
+    const row = document.createElement("div");
+    row.className = "level-row" + (l.level===lvl.level ? " current" : "");
+    row.innerHTML = `<div class="level-badge">${l.level}</div>
+      <div class="level-info"><div class="l-name">${l.name}</div>
+      <div class="l-sub">${l.level===1 ? "Starting level" : l.upgradeCost+" NVX to unlock"} · +${l.reward}/mine</div></div>
+      ${l.level===lvl.level ? '<span class="pill" style="background:#e6f8f4;color:var(--accent);">Current</span>' : ""}`;
+    levelList.appendChild(row);
+  });
+
   // invite
   document.getElementById("referralCount").textContent = userDoc.referralCount || 0;
   document.getElementById("referralBonusLabel").textContent = CONFIG.REFERRAL_BONUS;
@@ -489,24 +517,49 @@ function render(){
   // wallet
   document.getElementById("walletBalance").textContent = userDoc.balance.toFixed(0);
   document.getElementById("walletUsdt").textContent = `≈ $${coinsToUsdt(userDoc.balance).toFixed(4)} USDT`;
-  const notice = document.getElementById("withdrawNotice");
   const minUsdt = coinsToUsdt(CONFIG.MIN_WITHDRAW_COINS);
-  notice.textContent = `Minimum withdrawal: ${CONFIG.MIN_WITHDRAW_COINS} NVX (≈ $${minUsdt.toFixed(2)} USDT). This threshold is fixed and won't increase.`;
+  document.getElementById("withdrawNotice").textContent =
+    `Minimum withdrawal: ${CONFIG.MIN_WITHDRAW_COINS} NVX (≈ $${minUsdt.toFixed(2)} USDT).`;
   document.getElementById("withdrawBtn").disabled = userDoc.balance < CONFIG.MIN_WITHDRAW_COINS;
 }
-setInterval(()=>{ if(userDoc) render(); }, 30000); // keep countdowns fresh
+setInterval(()=>{ if(userDoc) render(); }, 30000);
+
+/* =========================================================
+   MULTI-AD HELPER (Adsgram) — plays N ads back-to-back.
+   If your Adsgram dashboard has a dedicated "multi-reward" block type,
+   you can swap this loop for that block's own show() call instead.
+   ========================================================= */
+async function watchMultiAd(count){
+  if (!window.Adsgram) throw new Error("sdk-not-loaded");
+  const AdController = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
+  for (let i=0;i<count;i++){
+    await AdController.show();
+  }
+}
 
 /* =========================================================
    ACTIONS
    ========================================================= */
-document.getElementById("collectBtn").addEventListener("click", async ()=>{
+document.getElementById("collectBtn").addEventListener("click", async function(){
   if (Date.now() < (userDoc.mineReadyAt||0)) return;
-  await userRef.update({
-    balance: firebase.firestore.FieldValue.increment(CONFIG.MINE_REWARD),
-    totalMined: firebase.firestore.FieldValue.increment(CONFIG.MINE_REWARD),
-    mineReadyAt: Date.now() + CONFIG.MINE_COOLDOWN_HOURS*3600000
-  });
-  toast(`+${CONFIG.MINE_REWARD} NVX collected!`);
+  const btn = this;
+  btn.dataset.busy = "1"; btn.disabled = true;
+  btn.textContent = `Watching ads 1/${CONFIG.MULTI_AD_COUNT}…`;
+  try{
+    await watchMultiAd(CONFIG.MULTI_AD_COUNT);
+    const lvl = levelOf(userDoc.miningLevel || 1);
+    await creditCoins(lvl.reward, {
+      totalMined: firebase.firestore.FieldValue.increment(lvl.reward),
+      mineReadyAt: Date.now() + 2*3600000
+    });
+    await registerAdWatched();
+    toast(`+${lvl.reward} NVX collected!`);
+  } catch(e){
+    toast("Ad not completed — try again.");
+  } finally {
+    delete btn.dataset.busy;
+    render();
+  }
 });
 
 document.getElementById("claimBonusBtn").addEventListener("click", async ()=>{
@@ -515,50 +568,50 @@ document.getElementById("claimBonusBtn").addEventListener("click", async ()=>{
   const continuing = userDoc.lastClaimDate === yesterday;
   const newStreak = continuing ? Math.min(userDoc.dailyStreak+1, CONFIG.DAILY_BONUS_MAX_DAY) : 1;
   const reward = CONFIG.DAILY_BONUS_BASE + (newStreak-1)*CONFIG.DAILY_BONUS_STEP;
-  await userRef.update({
-    balance: firebase.firestore.FieldValue.increment(reward),
-    dailyStreak: newStreak,
-    lastClaimDate: todayStr()
-  });
+  await creditCoins(reward, { dailyStreak: newStreak, lastClaimDate: todayStr() });
   toast(`+${reward} NVX daily bonus!`);
 });
 
-document.getElementById("watchAdBtn").addEventListener("click", async ()=>{
+document.getElementById("watchAdBtn").addEventListener("click", async function(){
   const adsToday = userDoc.lastAdDate === todayStr() ? userDoc.adsWatchedToday : 0;
   if (adsToday >= CONFIG.MAX_ADS_PER_DAY) return;
-  if (!window.Adsgram){ toast("Ad SDK not loaded — try again in a moment."); return; }
+  const btn = this;
+  btn.dataset.busy = "1"; btn.disabled = true;
+  btn.textContent = `Watching ads…`;
   try{
-    const AdController = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
-    await AdController.show();
+    await watchMultiAd(CONFIG.MULTI_AD_COUNT);
     const isNewDay = userDoc.lastAdDate !== todayStr();
-    await userRef.update({
-      balance: firebase.firestore.FieldValue.increment(CONFIG.COINS_PER_AD),
+    await creditCoins(CONFIG.COINS_PER_AD, {
       adsWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
       lastAdDate: todayStr()
     });
+    await registerAdWatched();
     toast(`+${CONFIG.COINS_PER_AD} NVX earned!`);
   } catch(e){
     toast("Ad skipped — no reward this time.");
+  } finally {
+    delete btn.dataset.busy;
+    render();
   }
 });
 
-// Monetag: Direct Link has no "ad watched" callback, so we open the link
-// then require a short wait before Claim unlocks, plus a daily cap.
+// Monetag Direct Link: open link, wait, arm Claim, then credit on 2nd click.
 document.getElementById("monetagBtn").addEventListener("click", function(){
   const btn = this;
   const monetagToday = userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0;
 
   if (btn.dataset.armed === "1"){
-    // second click = claim
     (async ()=>{
+      btn.dataset.busy = "1";
       const isNewDay = userDoc.lastMonetagDate !== todayStr();
-      await userRef.update({
-        balance: firebase.firestore.FieldValue.increment(CONFIG.MONETAG_COINS_PER_AD),
+      await creditCoins(CONFIG.MONETAG_COINS_PER_AD, {
         monetagWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
         lastMonetagDate: todayStr()
       });
+      await registerAdWatched();
       toast(`+${CONFIG.MONETAG_COINS_PER_AD} NVX earned!`);
-      delete btn.dataset.armed;
+      delete btn.dataset.armed; delete btn.dataset.busy;
+      render();
     })();
     return;
   }
@@ -573,16 +626,13 @@ document.getElementById("monetagBtn").addEventListener("click", function(){
     secs--;
     if (secs<=0){
       clearInterval(iv);
-      btn.disabled = false;
-      btn.dataset.armed = "1";
+      btn.disabled = false; btn.dataset.armed = "1";
       btn.textContent = "Claim";
-    } else {
-      btn.textContent = `Wait ${secs}s`;
-    }
+    } else { btn.textContent = `Wait ${secs}s`; }
   },1000);
 });
 
-// Telegram engagement tasks (honor system + cooldown)
+// Telegram task -> after "Go", a Monetag ad gates the claim (per your ask)
 document.getElementById("telegramTaskList").addEventListener("click", (e)=>{
   const btn = e.target.closest("button[data-task]");
   if (!btn || btn.disabled) return;
@@ -591,12 +641,32 @@ document.getElementById("telegramTaskList").addEventListener("click", (e)=>{
   if (tg) tg.openTelegramLink(task.link); else window.open(task.link,"_blank");
 
   btn.disabled = true;
-  btn.textContent = "Verifying…";
-  setTimeout(async ()=>{
-    await userRef.update({ [`taskClaims.${task.id}`]: Date.now(),
-      balance: firebase.firestore.FieldValue.increment(task.reward) });
-    toast(`+${task.reward} NVX earned!`);
-  }, 8000);
+  let secs = CONFIG.MONETAG_VERIFY_SECONDS;
+  btn.textContent = `Wait ${secs}s`;
+  const iv = setInterval(async ()=>{
+    secs--;
+    if (secs<=0){
+      clearInterval(iv);
+      if (tg) tg.openLink(CONFIG.MONETAG_LINK); else window.open(CONFIG.MONETAG_LINK,"_blank");
+      btn.textContent = "Verifying…";
+      setTimeout(async ()=>{
+        await creditCoins(task.reward, { [`taskClaims.${task.id}`]: Date.now() });
+        toast(`+${task.reward} NVX earned!`);
+        render();
+      }, CONFIG.MONETAG_VERIFY_SECONDS*1000);
+    } else { btn.textContent = `Wait ${secs}s`; }
+  },1000);
+});
+
+document.getElementById("upgradeBtn").addEventListener("click", async ()=>{
+  const lvl = levelOf(userDoc.miningLevel||1);
+  const next = levelOf(lvl.level+1);
+  if (lvl.level>=10 || userDoc.balance < next.upgradeCost) return;
+  await userRef.update({
+    balance: firebase.firestore.FieldValue.increment(-next.upgradeCost),
+    miningLevel: next.level
+  });
+  toast(`Upgraded to Lv.${next.level} ${next.name}!`);
 });
 
 document.getElementById("copyLinkBtn").addEventListener("click", ()=>{
@@ -626,16 +696,12 @@ document.getElementById("withdrawBtn").addEventListener("click", async ()=>{
 });
 
 /* =========================================================
-   LEADERBOARD (real users only)
+   LEADERBOARD / HISTORY
    ========================================================= */
 async function loadLeaderboard(){
   const el = document.getElementById("leaderboardList");
-  const snap = await db.collection("users")
-    .where("referralCount", ">", 0).orderBy("referralCount", "desc").limit(10).get();
-  if (snap.empty){
-    el.innerHTML = `<div class="empty-state">No referrals yet — be the first to invite a friend!</div>`;
-    return;
-  }
+  const snap = await db.collection("users").where("referralCount",">",0).orderBy("referralCount","desc").limit(10).get();
+  if (snap.empty){ el.innerHTML = `<div class="empty-state">No referrals yet — be the first to invite a friend!</div>`; return; }
   el.innerHTML = "";
   let rank = 1;
   snap.forEach(doc=>{
@@ -643,11 +709,9 @@ async function loadLeaderboard(){
     const row = document.createElement("div");
     row.className = "leader-row";
     row.innerHTML = `<div class="rank">${rank}</div><div class="name">${d.username||"User"}</div><div class="count">${d.referralCount} friends</div>`;
-    el.appendChild(row);
-    rank++;
+    el.appendChild(row); rank++;
   });
 }
-
 async function loadTxHistory(){
   const el = document.getElementById("txList");
   const snap = await db.collection("withdrawals").where("userId","==",userId).orderBy("requestedAt","desc").limit(20).get();
