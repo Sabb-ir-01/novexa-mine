@@ -7,6 +7,19 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- FIXED: correct Adsgram domain is .ai not .org -->
+<script src="//libtl.com/script.js" data-zone="11859054" data-sdk="show_11859054"></script>
+  <script>
+document.addEventListener("click", function(e) {
+    if (e.target && e.target.id === "monetagBtn") {
+        if (typeof show_11859054 === "function") {
+            show_11859054().then(() => {
+                creditCoins(15);
+                toast("You earned 15 NVX!");
+            });
+        }
+    }
+});
+</script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
