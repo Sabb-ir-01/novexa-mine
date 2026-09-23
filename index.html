@@ -99,6 +99,13 @@
     color:var(--text-muted);font-size:10px;font-weight:600;cursor:pointer;padding:4px 6px;}
   nav button.active{color:var(--accent);}
   .view{display:none;} .view.active{display:block;}
+  #launchSplash{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;transition:opacity .25s;}
+  #launchSplash.hide{opacity:0;pointer-events:none;}
+  #launchSplash .spin{width:34px;height:34px;border-radius:50%;border:4px solid #d6f3ee;border-top-color:var(--accent);
+    animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #launchSplash .sp-title{font-size:18px;font-weight:700;} #launchSplash .sp-sub{font-size:12px;color:var(--text-muted);}
   .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#111827;color:#fff;
     padding:11px 18px;border-radius:999px;font-size:13px;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none;
     max-width:88%;text-align:center;}
@@ -110,6 +117,13 @@
 </style>
 </head>
 <body>
+<!-- Launch splash: stays until the opening ad is closed (or fails / times out) -->
+<div id="launchSplash">
+  <div class="coin-icon">N</div>
+  <div class="sp-title">⛏️ Novexa Mine</div>
+  <div class="spin"></div>
+  <div class="sp-sub">Loading…</div>
+</div>
 <div id="app">
   <header>
     <div><h1>⛏️ Novexa Mine</h1><div class="sub" id="userLabel">connecting…</div></div>
@@ -253,6 +267,11 @@ const CONFIG = {
   MULTI_AD_COUNT: 3,               // Adsgram ads per Watch Ad / Collect click
   MONETAG_ZONE_ID: "11859054",     // Monetag Rewarded Interstitial zone
 
+  // Opening ad: shown every time the app opens; user closes it to enter the app.
+  LAUNCH_AD_ENABLED: true,
+  LAUNCH_AD_TIMEOUT_SEC: 10,       // if no ad appears by then, let the user in anyway
+  LAUNCH_AD_COOLDOWN_MIN: 0,       // 0 = every open; e.g. 5 = at most once per 5 minutes
+
   MONETAG_LINK: "https://omg10.com/4/11858728",
   MONETAG_COINS_PER_AD: 15,
   MAX_MONETAG_PER_DAY: 10,
@@ -383,6 +402,14 @@ async function creditCoins(amount, extraFields){
       }).catch(()=>{});
     }
   }
+}
+
+// Firestore write promises only resolve after the server confirms. On a slow
+// Telegram/mobile connection that can hang and leave a button stuck on
+// "Loading…". The write itself still completes in the background, so we
+// just stop waiting after a few seconds.
+function ackOrTimeout(promise, ms){
+  return Promise.race([promise, new Promise(res=>setTimeout(res, ms||6000))]);
 }
 
 async function registerAdWatched(){
@@ -540,13 +567,63 @@ setInterval(()=>{ if(userDoc) render(); }, 30000);
 async function showMonetagAd(){
   const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
   if (typeof fn !== "function") throw new Error("monetag-sdk-not-loaded");
-  await fn();
+  try{
+    await fn();
+  } finally {
+    preloadMonetag();   // get the next ad ready in the background
+  }
 }
+
+// Preload = download the next ad in advance so the button opens it instantly.
+let monetagPreloading = false;
+function preloadMonetag(){
+  const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+  if (typeof fn !== "function" || monetagPreloading) return;
+  monetagPreloading = true;
+  try{
+    Promise.resolve(fn({ type: "preload" }))
+      .catch(()=>{})
+      .finally(()=>{ monetagPreloading = false; });
+  } catch(e){ monetagPreloading = false; }
+}
+
+/* =========================================================
+   LAUNCH AD — plays right when the app opens, no reward.
+   The splash stays until the ad is closed. If the ad can't load
+   (no fill / slow network) the user is let in after a timeout,
+   so nobody is ever locked out.
+   ========================================================= */
+(function launchAd(){
+  const splash = document.getElementById("launchSplash");
+  let done = false;
+  function enter(){
+    if (done) return; done = true;
+    splash.classList.add("hide");
+    setTimeout(()=>{ splash.style.display = "none"; }, 300);
+    preloadMonetag();
+  }
+  const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+  let skip = !CONFIG.LAUNCH_AD_ENABLED || typeof fn !== "function";
+  try{
+    const last = Number(localStorage.getItem("lastLaunchAd") || 0);
+    if (CONFIG.LAUNCH_AD_COOLDOWN_MIN > 0 && Date.now() - last < CONFIG.LAUNCH_AD_COOLDOWN_MIN*60000) skip = true;
+  } catch(e){}
+  if (skip){ enter(); return; }
+
+  const failSafe = setTimeout(enter, CONFIG.LAUNCH_AD_TIMEOUT_SEC * 1000);
+  try{
+    Promise.resolve(fn())
+      .then(()=>{ try{ localStorage.setItem("lastLaunchAd", String(Date.now())); }catch(e){} })
+      .catch(()=>{})
+      .finally(()=>{ clearTimeout(failSafe); enter(); });
+  } catch(e){ clearTimeout(failSafe); enter(); }
+})();
 
 // Adsgram: plays `count` ads back-to-back (used by Watch Ad + Mining Collect).
 async function watchMultiAd(count, onProgress){
   if (!window.Adsgram) throw new Error("adsgram-sdk-not-loaded");
-  const AdController = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
+  if (!window.__adsgramCtl) window.__adsgramCtl = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
+  const AdController = window.__adsgramCtl;
   for (let i=0;i<count;i++){
     if (onProgress) onProgress(i+1, count);
     await AdController.show();
@@ -621,18 +698,23 @@ document.getElementById("monetagBtn").addEventListener("click", async function()
   btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Loading…";
   try{
     await showMonetagAd();
+    // ad watched -> credit (don't hang the UI if the server ack is slow)
     const isNewDay = userDoc.lastMonetagDate !== todayStr();
-    await creditCoins(CONFIG.MONETAG_COINS_PER_AD, {
+    await ackOrTimeout(creditCoins(CONFIG.MONETAG_COINS_PER_AD, {
       monetagWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
       lastMonetagDate: todayStr()
-    });
-    await registerAdWatched();
+    }));
     toast(`+${CONFIG.MONETAG_COINS_PER_AD} NVX earned!`);
+    ackOrTimeout(registerAdWatched()).catch(()=>{});
   } catch(e){
     console.error("Monetag error:", e);
     toast("No ad available right now — try again shortly.");
   } finally {
+    // always reset the button, no matter what happened above
     delete btn.dataset.busy;
+    const used = (userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0);
+    btn.textContent = "Go";
+    btn.disabled = used >= CONFIG.MAX_MONETAG_PER_DAY;
     render();
   }
 });
@@ -647,15 +729,24 @@ document.getElementById("telegramTaskList").addEventListener("click", async (e)=
 
   if (btn.dataset.armed === "1"){
     btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Loading…";
+    let ok = false;
     try{
       await showMonetagAd();
-      await creditCoins(task.reward, { ["taskClaims." + task.id]: Date.now() });
+      ok = true;
+      // remember locally right away so the button shows the cooldown at once
+      if (userDoc){
+        userDoc.taskClaims = Object.assign({}, userDoc.taskClaims, { [task.id]: Date.now() });
+      }
+      await ackOrTimeout(creditCoins(task.reward, { ["taskClaims." + task.id]: Date.now() }));
       toast(`+${task.reward} NVX earned!`);
     } catch(err){
       console.error("Task ad error:", err);
-      toast("Ad not completed — try Claim again.");
-      btn.disabled = false; btn.textContent = "Claim"; delete btn.dataset.busy;
-      return;
+      if (!ok){
+        toast("Ad not completed — try Claim again.");
+        btn.disabled = false; btn.textContent = "Claim"; delete btn.dataset.busy;
+        return;
+      }
+      toast("Saved — balance may take a moment to update.");
     }
     delete btn.dataset.armed; delete btn.dataset.busy;
     render();
