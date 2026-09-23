@@ -7,19 +7,9 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- FIXED: correct Adsgram domain is .ai not .org -->
-
-
-// Rewarded interstitial
-
-show_11859054().then(() => {
-    // You need to add your user reward function here, which will be executed after the user watches the ad.
-    // For more details, please refer to the detailed instructions.
-    alert('You have seen an ad!');
-})
-
-        
-</script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<!-- Monetag Rewarded Interstitial (In-App) SDK — zone 11859054 -->
+<script src='//libtl.com/sdk.js' data-zone='11859054' data-sdk='show_11859054'></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 
@@ -161,7 +151,7 @@ show_11859054().then(() => {
 
       <div class="card">
         <div class="section-title" style="font-size:14px;">Ad Missions</div>
-        <div class="section-sub">Sponsored offer — opens in Telegram's browser, then claim once it loads.</div>
+        <div class="section-sub">Watch a short sponsored ad inside the app and get your coins instantly.</div>
         <div class="task-item">
           <div><div class="t-name">Monetag Offer</div>
             <div class="t-reward" id="monetagCountLabel">+15 NVX · 0/10 today</div></div>
@@ -171,7 +161,7 @@ show_11859054().then(() => {
 
       <div class="card">
         <div class="section-title" style="font-size:14px;">Telegram Tasks</div>
-        <div class="section-sub">Complete the task, then a short ad plays before your coins are credited.</div>
+        <div class="section-sub">Complete the task, then tap Claim — a short ad plays before your coins are credited.</div>
         <div id="telegramTaskList"></div>
       </div>
 
@@ -256,8 +246,12 @@ const CONFIG = {
 
   COINS_PER_AD: 20,
   MAX_ADS_PER_DAY: 12,
+  // Ad routing:
+  //  - Earn "Watch Ad" + Mining "Collect"  -> Adsgram, MULTI_AD_COUNT ads back-to-back
+  //  - Monetag Offer + all Telegram tasks  -> Monetag, 1 rewarded interstitial
   ADSGRAM_BLOCK_ID: "49257",
-  MULTI_AD_COUNT: 3, // shows this many ads back-to-back per "Watch Ad" click
+  MULTI_AD_COUNT: 3,               // Adsgram ads per Watch Ad / Collect click
+  MONETAG_ZONE_ID: "11859054",     // Monetag Rewarded Interstitial zone
 
   MONETAG_LINK: "https://omg10.com/4/11858728",
   MONETAG_COINS_PER_AD: 15,
@@ -541,10 +535,20 @@ setInterval(()=>{ if(userDoc) render(); }, 30000);
    If your Adsgram dashboard has a dedicated "multi-reward" block type,
    you can swap this loop for that block's own show() call instead.
    ========================================================= */
-async function watchMultiAd(count){
-  if (!window.Adsgram) throw new Error("sdk-not-loaded");
+// Shows ONE Monetag rewarded interstitial. Resolves only after the user
+// watched it; rejects if no ad was available or the SDK is missing.
+async function showMonetagAd(){
+  const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+  if (typeof fn !== "function") throw new Error("monetag-sdk-not-loaded");
+  await fn();
+}
+
+// Adsgram: plays `count` ads back-to-back (used by Watch Ad + Mining Collect).
+async function watchMultiAd(count, onProgress){
+  if (!window.Adsgram) throw new Error("adsgram-sdk-not-loaded");
   const AdController = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
   for (let i=0;i<count;i++){
+    if (onProgress) onProgress(i+1, count);
     await AdController.show();
   }
 }
@@ -558,7 +562,7 @@ document.getElementById("collectBtn").addEventListener("click", async function()
   btn.dataset.busy = "1"; btn.disabled = true;
   btn.textContent = `Watching ads 1/${CONFIG.MULTI_AD_COUNT}…`;
   try{
-    await watchMultiAd(CONFIG.MULTI_AD_COUNT);
+    await watchMultiAd(CONFIG.MULTI_AD_COUNT, (i,n)=>{ btn.textContent = `Watching ads ${i}/${n}…`; });
     const lvl = levelOf(userDoc.miningLevel || 1);
     await creditCoins(lvl.reward, {
       totalMined: firebase.firestore.FieldValue.increment(lvl.reward),
@@ -591,7 +595,7 @@ document.getElementById("watchAdBtn").addEventListener("click", async function()
   btn.dataset.busy = "1"; btn.disabled = true;
   btn.textContent = `Watching ads…`;
   try{
-    await watchMultiAd(CONFIG.MULTI_AD_COUNT);
+    await watchMultiAd(CONFIG.MULTI_AD_COUNT, (i,n)=>{ btn.textContent = `Watching ads ${i}/${n}…`; });
     const isNewDay = userDoc.lastAdDate !== todayStr();
     await creditCoins(CONFIG.COINS_PER_AD, {
       adsWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
@@ -607,30 +611,58 @@ document.getElementById("watchAdBtn").addEventListener("click", async function()
   }
 });
 
-// Monetag Direct Link: open link, wait, arm Claim, then credit on 2nd click.
-document.getElementById("monetagBtn").addEventListener("click", function(){
+// Monetag Offer: shows the Rewarded Interstitial, credits coins after it's watched.
+document.getElementById("monetagBtn").addEventListener("click", async function(){
   const btn = this;
+  if (btn.dataset.busy) return;
   const monetagToday = userDoc.lastMonetagDate === todayStr() ? userDoc.monetagWatchedToday : 0;
+  if (monetagToday >= CONFIG.MAX_MONETAG_PER_DAY) return;
+
+  btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Loading…";
+  try{
+    await showMonetagAd();
+    const isNewDay = userDoc.lastMonetagDate !== todayStr();
+    await creditCoins(CONFIG.MONETAG_COINS_PER_AD, {
+      monetagWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
+      lastMonetagDate: todayStr()
+    });
+    await registerAdWatched();
+    toast(`+${CONFIG.MONETAG_COINS_PER_AD} NVX earned!`);
+  } catch(e){
+    console.error("Monetag error:", e);
+    toast("No ad available right now — try again shortly.");
+  } finally {
+    delete btn.dataset.busy;
+    render();
+  }
+});
+
+// Telegram task: "Go" opens the channel, short wait, then "Claim" shows a
+// Monetag rewarded ad and credits coins once it has been watched.
+document.getElementById("telegramTaskList").addEventListener("click", async (e)=>{
+  const btn = e.target.closest("button[data-task]");
+  if (!btn || btn.disabled || btn.dataset.busy) return;
+  const task = CONFIG.TELEGRAM_TASKS.find(t=>t.id===btn.dataset.task);
+  if (!task) return;
 
   if (btn.dataset.armed === "1"){
-    (async ()=>{
-      btn.dataset.busy = "1";
-      const isNewDay = userDoc.lastMonetagDate !== todayStr();
-      await creditCoins(CONFIG.MONETAG_COINS_PER_AD, {
-        monetagWatchedToday: isNewDay ? 1 : firebase.firestore.FieldValue.increment(1),
-        lastMonetagDate: todayStr()
-      });
-      await registerAdWatched();
-      toast(`+${CONFIG.MONETAG_COINS_PER_AD} NVX earned!`);
-      delete btn.dataset.armed; delete btn.dataset.busy;
-      render();
-    })();
+    btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Loading…";
+    try{
+      await showMonetagAd();
+      await creditCoins(task.reward, { ["taskClaims." + task.id]: Date.now() });
+      toast(`+${task.reward} NVX earned!`);
+    } catch(err){
+      console.error("Task ad error:", err);
+      toast("Ad not completed — try Claim again.");
+      btn.disabled = false; btn.textContent = "Claim"; delete btn.dataset.busy;
+      return;
+    }
+    delete btn.dataset.armed; delete btn.dataset.busy;
+    render();
     return;
   }
 
-  if (monetagToday >= CONFIG.MAX_MONETAG_PER_DAY) return;
-  if (tg) tg.openLink(CONFIG.MONETAG_LINK); else window.open(CONFIG.MONETAG_LINK, "_blank");
-
+  if (tg) tg.openTelegramLink(task.link); else window.open(task.link,"_blank");
   btn.disabled = true;
   let secs = CONFIG.MONETAG_VERIFY_SECONDS;
   btn.textContent = `Wait ${secs}s`;
@@ -638,34 +670,7 @@ document.getElementById("monetagBtn").addEventListener("click", function(){
     secs--;
     if (secs<=0){
       clearInterval(iv);
-      btn.disabled = false; btn.dataset.armed = "1";
-      btn.textContent = "Claim";
-    } else { btn.textContent = `Wait ${secs}s`; }
-  },1000);
-});
-
-// Telegram task -> after "Go", a Monetag ad gates the claim (per your ask)
-document.getElementById("telegramTaskList").addEventListener("click", (e)=>{
-  const btn = e.target.closest("button[data-task]");
-  if (!btn || btn.disabled) return;
-  const task = CONFIG.TELEGRAM_TASKS.find(t=>t.id===btn.dataset.task);
-  if (!task) return;
-  if (tg) tg.openTelegramLink(task.link); else window.open(task.link,"_blank");
-
-  btn.disabled = true;
-  let secs = CONFIG.MONETAG_VERIFY_SECONDS;
-  btn.textContent = `Wait ${secs}s`;
-  const iv = setInterval(async ()=>{
-    secs--;
-    if (secs<=0){
-      clearInterval(iv);
-      if (tg) tg.openLink(CONFIG.MONETAG_LINK); else window.open(CONFIG.MONETAG_LINK,"_blank");
-      btn.textContent = "Verifying…";
-      setTimeout(async ()=>{
-        await creditCoins(task.reward, { [`taskClaims.${task.id}`]: Date.now() });
-        toast(`+${task.reward} NVX earned!`);
-        render();
-      }, CONFIG.MONETAG_VERIFY_SECONDS*1000);
+      btn.disabled = false; btn.dataset.armed = "1"; btn.textContent = "Claim";
     } else { btn.textContent = `Wait ${secs}s`; }
   },1000);
 });
